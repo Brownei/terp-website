@@ -1,22 +1,13 @@
 # Use official NGINX image as base
 FROM nginx:alpine
-
-# Set working directory
-WORKDIR /usr/share/nginx/html
-
-# Copy website files
+RUN apk add --no-cache certbot certbot-nginx
 COPY index.html /usr/share/nginx/html/
 COPY robots.txt /usr/share/nginx/html/
 COPY public /usr/share/nginx/html/public
-
-# Copy installer scripts
 COPY install /usr/share/nginx/html/install
-
-# Copy nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
-
-# Expose port 80
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 EXPOSE 80
+CMD ["/entrypoint.sh"]
 
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
