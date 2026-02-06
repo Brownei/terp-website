@@ -11,15 +11,61 @@ import json
 import tempfile
 from enum import Enum
 
+# ============================================================================
+# CONFIGURATION CONSTANTS - Update these for new releases or endpoints
+# ============================================================================
+
+# Default Settings
 DEFAUT_TERP_HOME = os.path.expanduser("~/.terp")
 DEFAULT_MONIKER = "terp"
 
+# Network Choices
 NETWORK_CHOICES = ['morocco-1', '90u-4']
 INSTALL_CHOICES = ['node', 'client', 'localterp']
 PRUNING_CHOICES = ['default', 'nothing', 'everything']
 
-MAINNET_VERSION = "4.2.2"
-TESTNET_VERSION = "4.2.2"
+# Binary Versions
+MAINNET_VERSION = "5.0.2"
+TESTNET_VERSION = "5.0.2"
+
+# GitHub Repository
+GITHUB_REPO_URL = "https://github.com/terpnetwork/terp-core"
+GITHUB_RELEASES_URL = f"{GITHUB_REPO_URL}/releases/download"
+NETWORKS_REPO_URL = "https://raw.githubusercontent.com/terpnetwork/networks/refs/heads/main"
+
+# Binary Download URLs
+MAINNET_BINARY_BASE_URL = f"{GITHUB_RELEASES_URL}/v{MAINNET_VERSION}"
+TESTNET_BINARY_BASE_URL = f"{GITHUB_RELEASES_URL}/v{TESTNET_VERSION}"
+
+# Genesis Files
+MAINNET_GENESIS_URL = f"{NETWORKS_REPO_URL}/mainnet/morocco-1/genesis.json"
+TESTNET_GENESIS_URL = f"{NETWORKS_REPO_URL}/testnet/90u-4/genesis.json"
+
+# RPC Endpoints
+MAINNET_RPC_ENDPOINT = "https://rpc-mainnet.terp.network:443"
+TESTNET_RPC_ENDPOINT = "https://rpc-testnet.terp.network:443"
+
+# Peer Nodes
+MAINNET_PEERS = []  # Uses addrbook instead
+TESTNET_PEERS = [
+    "9e194721d68dd28d3c4b625c17b2cb287ef30327@peer-testnet.terp.network:26656",
+]
+
+# Addrbook URLs
+MAINNET_ADDRBOOK_URL = "https://snapshot-mainnet.terp.network/addrbook.json"
+TESTNET_ADDRBOOK_URL = "https://snapshot-testnet.terp.network/addrbook.json"
+
+# Snapshot URLs
+MAINNET_SNAPSHOT_URL = "https://snapshot-mainnet.terp.network/terp_latest.tar.lz4"
+TESTNET_SNAPSHOT_URL = "https://snapshot-testnet.terp.network/latest"
+
+# Cosmovisor URLs
+COSMOVISOR_VERSION = "v1.2.0"
+COSMOVISOR_BASE_URL = "https://snapshot-mainnet.terp.network/binaries/cosmovisor"
+
+# ============================================================================
+# END CONFIGURATION CONSTANTS
+# ============================================================================
 
 # CLI arguments
 parser = argparse.ArgumentParser(description="Terp Network Installer")
@@ -133,55 +179,52 @@ class Network:
 
 TESTNET = Network(
     chain_id = "90u-4",
-    version = f"v${TESTNET_VERSION}",
-    genesis_url = "https://raw.githubusercontent.com/terpnetwork/networks/refs/heads/main/testnet/90u-4/genesis.json",
+    version = f"v{TESTNET_VERSION}",
+    genesis_url = TESTNET_GENESIS_URL,
     binary_url = {
         "linux": {
-            "amd64": f"https://github.com/terpnetwork/terp-core/releases/download/v{TESTNET_VERSION}/terpd-linux-amd64",
-            "arm64": f"https://github.com/terpnetwork/terp-core/releases/download/v{TESTNET_VERSION}/terpd-linux-arm64"
+            "amd64": f"{TESTNET_BINARY_BASE_URL}/terpd-linux-amd64",
+            "arm64": f"{TESTNET_BINARY_BASE_URL}/terpd-linux-arm64"
         },
         "darwin": {
-          "amd64": f"https://github.com/terpnetwork/terp-core/releases/download/v{TESTNET_VERSION}/terpd-linux-amd64",
-          "arm64": f"https://github.com/terpnetwork/terp-core/releases/download/v{TESTNET_VERSION}/terpd-linux-arm64"
+          "amd64": f"{TESTNET_BINARY_BASE_URL}/terpd-linux-amd64",
+          "arm64": f"{TESTNET_BINARY_BASE_URL}/terpd-linux-arm64"
         },
     },
-    peers = [
-        "9e194721d68dd28d3c4b625c17b2cb287ef30327@testnet-peer.terp.network:26656",
-        # "51d48be3809bb8907c1ef5f747e53cdd0c9ded1b@terp-testnet-peer.itrocket.net:443",
-    ],
-    rpc_node = "https://testnet-rpc.terp.network:443",
-    addrbook_url = "https://testnet-rpc.terp.network/addrbook",
-    snapshot_url = "https://snapshots.testnet.terp.network/latest" ## TODO: setup snapshot service
+    peers = TESTNET_PEERS,
+    rpc_node = TESTNET_RPC_ENDPOINT,
+    addrbook_url = TESTNET_ADDRBOOK_URL,
+    snapshot_url = TESTNET_SNAPSHOT_URL
 )
 
 MAINNET = Network(
     chain_id = "morocco-1",
     version = f"v{MAINNET_VERSION}",
-    genesis_url = "https://raw.githubusercontent.com/terpnetwork/networks/refs/heads/main/mainnet/morocco-1/genesis.json",
+    genesis_url = MAINNET_GENESIS_URL,
     binary_url = {
        "linux": {
-            "amd64": f"https://github.com/terpnetwork/terp-core/releases/download/v{MAINNET_VERSION}/terpd-linux-amd64",
-            "arm64": f"https://github.com/terpnetwork/terp-core/releases/download/v{MAINNET_VERSION}/terpd-linux-arm64"
+            "amd64": f"{MAINNET_BINARY_BASE_URL}/terpd-linux-amd64",
+            "arm64": f"{MAINNET_BINARY_BASE_URL}/terpd-linux-arm64"
         },
         "darwin": {
-            "amd64": f"https://github.com/terpnetwork/terp-core/releases/download/v{MAINNET_VERSION}/terpd-linux-amd64",
-            "arm64": f"https://github.com/terpnetwork/terp-core/releases/download/v{MAINNET_VERSION}/terpd-linux-arm64"
+            "amd64": f"{MAINNET_BINARY_BASE_URL}/terpd-linux-amd64",
+            "arm64": f"{MAINNET_BINARY_BASE_URL}/terpd-linux-arm64"
         },
     },
-    peers = None,
-    rpc_node = "https://rpc-terp.zenchainlabs.io:443",
-    addrbook_url = "https://server-3.itrocket.net/mainnet/terp/addrbook.json",
-    snapshot_url = "https://snapshots.nodejumper.io/terp/terp_latest.tar.lz4"
+    peers = MAINNET_PEERS if MAINNET_PEERS else None,
+    rpc_node = MAINNET_RPC_ENDPOINT,
+    addrbook_url = MAINNET_ADDRBOOK_URL,
+    snapshot_url = MAINNET_SNAPSHOT_URL
 )
 
 COSMOVISOR_URL = {
     # "darwin": {
-    #     "amd64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/cosmovisor/cosmovisor-v1.2.0-darwin-amd64",
-    #     "arm64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/cosmovisor/cosmovisor-v1.2.0-darwin-arm64"
+    #     "amd64": f"{COSMOVISOR_BASE_URL}/cosmovisor-{COSMOVISOR_VERSION}-darwin-amd64",
+    #     "arm64": f"{COSMOVISOR_BASE_URL}/cosmovisor-{COSMOVISOR_VERSION}-darwin-arm64"
     # },
     "linux": {
-        "amd64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/cosmovisor/cosmovisor-v1.2.0-linux-amd64",
-        "arm64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/cosmovisor/cosmovisor-v1.2.0-linux-arm64"
+        "amd64": f"{COSMOVISOR_BASE_URL}/cosmovisor-{COSMOVISOR_VERSION}-linux-amd64",
+        "arm64": f"{COSMOVISOR_BASE_URL}/cosmovisor-{COSMOVISOR_VERSION}-linux-arm64"
     }
 }
 # Terminal utils
@@ -194,6 +237,29 @@ class bcolors:
 
 def clear_screen():
     os.system('clear')
+
+def safe_input(prompt):
+    """
+    Wrapper around input() that handles EOFError gracefully.
+
+    Args:
+        prompt (str): The prompt to display to the user.
+
+    Returns:
+        str: The user's input, or exits the program if EOF is encountered.
+    """
+    try:
+        return input(prompt)
+    except EOFError:
+        print(bcolors.RED + "\n\nError: No input available (EOF detected)." + bcolors.ENDC)
+        print("This script requires interactive input. Please run it in an interactive terminal.")
+        print("If you want to run this non-interactively, use the command-line flags:")
+        print("  --install <node|client|localterp>")
+        print("  --network <morocco-1|90u-4>")
+        print("  --home <path>")
+        print("  --moniker <name>")
+        print("\nFor full options, run: python3 terp-installer.py --help")
+        sys.exit(1)
 
 # Messages
 
@@ -282,7 +348,7 @@ Please choose the desired installation:
         """ + bcolors.ENDC)
 
         while True:
-            choice = input("Enter your choice, or 'exit' to quit: ").strip()
+            choice = safe_input("Enter your choice, or 'exit' to quit: ").strip()
 
             if choice.lower() == "exit":
                 print("Exiting the program...")
@@ -334,7 +400,7 @@ Please choose the desired network:
 """ + bcolors.ENDC)
 
         while True:
-            choice = input("Enter your choice, or 'exit' to quit: ").strip()
+            choice = safe_input("Enter your choice, or 'exit' to quit: ").strip()
 
             if choice.lower() == "exit":
                 print("Exiting the program...")
@@ -375,7 +441,7 @@ Do you want to install Terp-Core in the default location?:
 """ + bcolors.ENDC)
 
         while True:
-            choice = input("Enter your choice, or 'exit' to quit: ").strip()
+            choice = safe_input("Enter your choice, or 'exit' to quit: ").strip()
 
             if choice.lower() == "exit":
                 print("Exiting the program...")
@@ -387,7 +453,7 @@ Do you want to install Terp-Core in the default location?:
 
             elif choice == Answer.NO:
                 while True:
-                    custom_home = input("Enter the path for Terp-Core home: ").strip()
+                    custom_home = safe_input("Enter the path for Terp-Core home: ").strip()
                     if custom_home != "":
                         terp_home = custom_home
                         break
@@ -422,7 +488,7 @@ Do you want to use the default moniker?
 """ + bcolors.ENDC)
 
         while True:
-            choice = input("Enter your choice, or 'exit' to quit: ").strip()
+            choice = safe_input("Enter your choice, or 'exit' to quit: ").strip()
 
             if choice.lower() == "exit":
                 print("Exiting the program...")
@@ -433,7 +499,7 @@ Do you want to use the default moniker?
                 break
             elif choice == Answer.NO:
                 while True:
-                    custom_moniker = input("Enter the custom moniker: ")
+                    custom_moniker = safe_input("Enter the custom moniker: ")
                     if custom_moniker.strip() != "":
                         moniker = custom_moniker
                         break
@@ -474,7 +540,7 @@ Do you want to initialize the Terp-Core home directory at '{terp_home}'?
 💡 You can overwrite the terp network home using --overwrite flag.
             """ + bcolors.ENDC)
 
-            choice = input("Enter your choice, or 'exit' to quit: ").strip()
+            choice = safe_input("Enter your choice, or 'exit' to quit: ").strip()
 
             if choice.lower() == "exit":
                 print("Exiting the program...")
@@ -541,7 +607,7 @@ Please choose your desired pruning settings:
     """ + bcolors.ENDC)
 
         while True:
-            choice = input("Enter your choice, or 'exit' to quit: ").strip()
+            choice = safe_input("Enter your choice, or 'exit' to quit: ").strip()
 
             if choice.lower() == "exit":
                 print("Exiting the program...")
@@ -653,7 +719,7 @@ def download_binary(network):
             subprocess.run([binary_path, "version"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             print("terpd is already installed at " + bcolors.OKGREEN + f"{binary_path}" + bcolors.ENDC)
             while True:
-                choice = input("Do you want to skip the download or overwrite the binary? (skip/overwrite): ").strip().lower()
+                choice = safe_input("Do you want to skip the download or overwrite the binary? (skip/overwrite): ").strip().lower()
                 if choice == "skip":
                     print("Skipping download.")
                     return
@@ -809,7 +875,7 @@ Do you want me to install it?
     2) No, continue without installing lz4
         """ + bcolors.ENDC)
 
-            choice = input("Enter your choice, or 'exit' to quit: ").strip()
+            choice = safe_input("Enter your choice, or 'exit' to quit: ").strip()
 
             if choice.lower() == "exit":
                 print("Exiting the program...")
@@ -943,7 +1009,7 @@ Choose one of the following snapshots:
     while True:
 
         print_snapshot_download_info(snapshots)
-        choice = input("Enter your choice, or 'exit' to quit: ").strip()
+        choice = safe_input("Enter your choice, or 'exit' to quit: ").strip()
 
         if choice.lower() == "exit":
             print("Exiting the program...")
@@ -993,7 +1059,7 @@ Do you want to install cosmovisor?
 """ + bcolors.ENDC)
 
         while True:
-            choice = input("Enter your choice, or 'exit' to quit: ").strip()
+            choice = safe_input("Enter your choice, or 'exit' to quit: ").strip()
 
             if choice.lower() == "exit":
                 print("Exiting the program...")
@@ -1101,7 +1167,7 @@ Do you want to setup cosmovisor as a background service?
 """ + bcolors.ENDC)
 
         while True:
-            choice = input("Enter your choice, or 'exit' to quit: ").strip()
+            choice = safe_input("Enter your choice, or 'exit' to quit: ").strip()
 
             if choice.lower() == "exit":
                 print("Exiting the program...")
@@ -1170,7 +1236,7 @@ Do you want to set up terpd as a background service?
 """ + bcolors.ENDC)
 
         while True:
-            choice = input("Enter your choice, or 'exit' to quit: ").strip()
+            choice = safe_input("Enter your choice, or 'exit' to quit: ").strip()
 
             if choice.lower() == "exit":
                 print("Exiting the program...")

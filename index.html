@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <meta name="description"
         content="Terp Network - A L1 Blockchain dedicated to programmable censorship-resistance. Ensuring undoubtable access & sovereignty for collaboration in a technological world.">
     <title>Terp Network - Respect the Hash</title>
@@ -45,6 +45,13 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            width: 100%;
+            max-width: 100vw;
+        }
+
+        html {
+            overflow-x: hidden;
+            width: 100%;
         }
 
         .container {
@@ -62,9 +69,12 @@
 
         .container {
             max-width: 800px;
+            width: 100%;
             position: relative;
             z-index: 1;
             text-align: center;
+            padding: 1rem;
+            box-sizing: border-box;
         }
 
         .title {
@@ -202,7 +212,7 @@
         .install-subtitle {
             text-align: center;
             background: rgba(30, 26, 26, 0.138);
-             padding: 0.25rem 0.6rem;
+            padding: 0.25rem 0.6rem;
             color: #fe7d7d;
             font-size: 0.95rem;
             font-weight: 600;
@@ -227,6 +237,9 @@
             border: 1px solid rgba(207, 255, 207, 0.2);
             border-radius: 4px;
             overflow: visible;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
         }
 
         .inline-verify {
@@ -370,7 +383,7 @@
             background: rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(207, 255, 207, 0.15);
             color: #cfffcf;
-            padding: 0.4rem 0.6rem;
+            padding: 0.6rem 0.8rem;
             font-family: 'Courier New', monospace;
             font-size: 0.65rem;
             border-radius: 3px;
@@ -378,6 +391,9 @@
             user-select: all;
             transition: all 0.2s ease;
             outline: none;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-all;
         }
 
         .inline-checksum-value:hover,
@@ -430,6 +446,7 @@
 
             .inline-checksum-value {
                 font-size: 0.6rem;
+                padding: 0.5rem 0.6rem;
             }
 
             .tooltip {
@@ -440,6 +457,43 @@
         }
 
         @media (max-width: 600px) {
+            .container {
+                padding: 0.75rem;
+            }
+
+            .title {
+                font-size: 2rem;
+            }
+
+            .title-static {
+                white-space: normal;
+                word-break: break-word;
+            }
+
+            .subtitle {
+                font-size: 0.85rem;
+                letter-spacing: 0.1em;
+            }
+
+            .install-section {
+                margin: 2rem auto;
+                padding: 0 0.5rem;
+            }
+
+            .install-header {
+                padding: 0.75rem 1rem;
+                gap: 0.5rem;
+            }
+
+            .install-header span {
+                font-size: 0.85rem;
+            }
+
+            .install-header-code {
+                font-size: 0.85rem;
+                padding: 0.2rem 0.5rem;
+            }
+
             .countdown-timer {
                 gap: 1rem;
             }
@@ -454,6 +508,11 @@
 
             .install-box {
                 font-size: 0.6rem !important;
+                padding: 0 0.5rem;
+            }
+
+            .install-input-wrapper {
+                padding: 0.7rem 0.8rem;
             }
 
             .copy-button {
@@ -464,6 +523,51 @@
             .install-tab {
                 font-size: 0.65rem !important;
                 padding: 0.4rem 0.8rem !important;
+            }
+
+            .description {
+                font-size: 0.85rem;
+                padding: 0 0.5rem;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .container {
+                padding: 0.5rem;
+            }
+
+            .title {
+                font-size: 1.75rem;
+            }
+
+            .subtitle {
+                font-size: 0.75rem;
+            }
+
+            .install-section {
+                padding: 0 0.25rem;
+            }
+
+            .install-header {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 0.75rem;
+            }
+
+            .install-header span {
+                font-size: 0.8rem;
+            }
+
+            .install-header-code {
+                font-size: 0.8rem;
+            }
+
+            .install-box {
+                font-size: 0.55rem !important;
+            }
+
+            .inline-checksum-value {
+                font-size: 0.55rem;
             }
         }
 
@@ -621,6 +725,8 @@
             display: flex;
             gap: 0;
             margin-bottom: 1.5rem;
+            width: 100%;
+            max-width: 100%;
         }
 
         .install-input-wrapper {
@@ -889,7 +995,7 @@
             <!-- Installation Content (Collapsible) -->
             <div class="install-content" id="install-content">
                 <div class="install-subtitle">
-                To install the primary software for Terp-Network, copy and paste this script into your terminal:
+                    To install the primary software for Terp-Network, copy and paste this script into your terminal:
                 </div>
                 <div class="install-tabs">
                     <div class="install-tab active" data-tab="shell" onclick="switchTab('shell')">macOS &amp; Linux
@@ -901,7 +1007,7 @@
                     <div class="install-wrapper">
                         <div class="install-input-wrapper">
                             <input type="text" class="install-box" id="install-command"
-                                value="curl -sL https://terp.network/install | python3" size="50" readonly=""
+                                value="curl -fsSL https://terp.network/get | bash" size="50" readonly=""
                                 onclick="this.select()">
                         </div>
                         <button class="copy-button" onclick="copyToClipboard()">
@@ -933,9 +1039,9 @@
                             </div>
                         </button>
                         <div class="inline-checksum" id="inline-checksum" style="display: none;">
-                            <input type="text" class="inline-checksum-value" id="sha256-checksum" readonly
-                                value="Click Verify">
-                            <button class="inline-copy-btn" onclick="copyChecksum('sha256')" title="Copy checksum">
+                            <textarea class="inline-checksum-value" id="sha256-checksum" readonly rows="4"
+                                style="resize: none; overflow-y: auto;">Click Verify</textarea>
+                            <button class="inline-copy-btn" onclick="copyAllChecksums()" title="Copy all checksums">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                                     <path
                                         d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
@@ -989,6 +1095,16 @@
 
                 </svg>
             </a>
+            <a href="https://ping.pub/terp" class="social-link" title="Block Explorer">
+                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" height="800px"
+                    width="800px" version="1.1" id="_x32_" viewBox="0 0 512 512" xml:space="preserve">
+
+                    <g>
+                        <path class="st0"
+                            d="M454.002,324.104V187.896c16.877-5.176,29.228-20.691,29.228-39.268c0-22.79-18.475-41.257-41.258-41.257   c-10.87,0-20.69,4.292-28.06,11.168L296.125,50.53c0.689-2.991,1.136-6.069,1.136-9.272C297.261,18.468,278.786,0,256.004,0   c-22.782,0-41.258,18.468-41.258,41.258c0,3.203,0.447,6.281,1.136,9.272L98.087,118.54c-7.37-6.876-17.191-11.168-28.062-11.168   c-22.782,0-41.256,18.467-41.256,41.257c0,18.576,12.351,34.091,29.227,39.268v136.208c-16.876,5.176-29.227,20.691-29.227,39.268   c0,22.79,18.474,41.257,41.256,41.257c10.879,0,20.692-4.292,28.062-11.168l117.787,68.01c-0.69,2.991-1.136,6.069-1.136,9.272   c0,22.79,18.475,41.258,41.257,41.258s41.257-18.468,41.257-41.258c0-3.203-0.446-6.288-1.136-9.28l117.788-68.002   c7.37,6.876,17.191,11.168,28.068,11.168c22.783,0,41.258-18.467,41.258-41.257C483.231,344.795,470.879,329.28,454.002,324.104z    M243.967,431.476c-6.054,1.856-11.52,4.965-16.031,9.178l-117.788-68.01c0.689-2.992,1.136-6.077,1.136-9.272   c0-18.576-12.351-34.091-29.228-39.268V187.896c6.054-1.856,11.521-4.965,16.032-9.178l117.787,68.009   c-0.69,2.992-1.136,6.07-1.136,9.273c0,18.576,12.35,34.091,29.228,39.268V431.476z M227.935,225.91l-117.788-68.009   c0.689-2.992,1.136-6.07,1.136-9.273c0-3.203-0.447-6.281-1.136-9.272l117.796-68.01c7.369,6.876,17.19,11.168,28.06,11.168   c10.87,0,20.691-4.292,28.061-11.168l117.787,68.01c-0.689,2.992-1.136,6.069-1.136,9.272c0,3.196,0.447,6.281,1.136,9.273   l-117.803,68.002c-7.37-6.869-17.182-11.16-28.053-11.16S235.305,219.034,227.935,225.91z M429.943,324.104   c-16.877,5.176-29.227,20.691-29.227,39.268c0,3.195,0.447,6.281,1.136,9.272l-117.795,68.01   c-4.519-4.214-9.978-7.323-16.031-9.178V295.268c16.877-5.177,29.227-20.692,29.227-39.268c0-3.203-0.446-6.281-1.136-9.273   l117.796-68.009c4.511,4.214,9.977,7.323,16.031,9.178V324.104z" />
+                    </g>
+                </svg>
+            </a>
         </div>
 
 
@@ -1031,7 +1147,7 @@
     <script>
         // Install commands for different platforms
         const installCommands = {
-            shell: "curl -sL https://terp.network/install | python3",
+            shell: "curl -fsSL https://terp.network/get | bash",
             python: "uvx --from terp-core terpd"
         };
 
@@ -1091,18 +1207,18 @@
             }
         }
 
-        // Copy checksum to clipboard
-        function copyChecksum(type) {
-            const checksumElement = document.getElementById(`${type}-checksum`);
-            const checksum = checksumElement.value;
+        // Copy all checksums to clipboard
+        function copyAllChecksums() {
+            const checksumElement = document.getElementById('sha256-checksum');
+            const checksums = checksumElement.value;
 
-            if (checksum === 'Click Calculate' || checksum === 'Calculating...' || checksum.includes('Error')) return;
+            if (checksums === 'Click Verify' || checksums === 'Calculating...' || checksums.includes('Error')) return;
 
             // Select and copy
             checksumElement.select();
             checksumElement.setSelectionRange(0, 99999);
 
-            navigator.clipboard.writeText(checksum).then(() => {
+            navigator.clipboard.writeText(checksums).then(() => {
                 // Visual feedback
                 const originalBg = checksumElement.style.background;
                 const originalBorder = checksumElement.style.borderColor;
@@ -1113,7 +1229,7 @@
                     checksumElement.style.borderColor = originalBorder || 'rgba(207, 255, 207, 0.15)';
                 }, 1000);
             }).catch(err => {
-                console.error('Failed to copy checksum:', err);
+                console.error('Failed to copy checksums:', err);
             });
         }
 
@@ -1137,29 +1253,67 @@
             inlineChecksumDiv.style.display = 'flex';
 
             try {
-                let scriptContent;
+                let shellScript, pythonScript;
 
-                // Try fetching from nginx endpoint first
+                // Fetch shell script from nginx endpoint
                 try {
-                    const response = await fetch('/install');
+                    const response = await fetch('/get');
                     if (response.ok) {
-                        scriptContent = await response.text();
+                        shellScript = await response.text();
                     } else {
                         throw new Error('Nginx endpoint not available');
                     }
                 } catch (fetchError) {
                     // Fallback: try direct file path (for local development)
-                    console.log('Trying fallback path...');
-                    const fallbackResponse = await fetch('install/terp-installer.py');
+                    console.log('Trying fallback path for shell script...');
+                    const fallbackResponse = await fetch('get/terp-installer.sh');
                     if (!fallbackResponse.ok) {
-                        throw new Error(`Failed to fetch installer script`);
+                        throw new Error(`Failed to fetch shell script`);
                     }
-                    scriptContent = await fallbackResponse.text();
+                    shellScript = await fallbackResponse.text();
                 }
 
-                // Calculate SHA-256
-                const sha256 = await calculateSHA256(scriptContent);
-                sha256Element.value = sha256;
+                // Fetch Python script with multiple fallback attempts
+                let pythonFetchError = null;
+                const pythonPaths = [
+                    'get/terp-installer.py',
+                    '/get/terp-installer.py',
+                    './get/terp-installer.py'
+                ];
+
+                for (const path of pythonPaths) {
+                    try {
+                        console.log(`Attempting to fetch Python script from: ${path}`);
+                        const pyResponse = await fetch(path);
+                        if (pyResponse.ok) {
+                            pythonScript = await pyResponse.text();
+                            console.log(`Successfully fetched Python script from: ${path}`);
+                            break;
+                        } else {
+                            console.log(`Failed to fetch from ${path}: HTTP ${pyResponse.status}`);
+                        }
+                    } catch (error) {
+                        console.log(`Error fetching from ${path}:`, error);
+                        pythonFetchError = error.message;
+                    }
+                }
+
+                if (!pythonScript) {
+                    pythonFetchError = pythonFetchError || 'File not accessible from web server';
+                }
+
+                // Calculate SHA-256 for both scripts
+                const shellSha256 = await calculateSHA256(shellScript);
+                let output = `# terp-installer.sh (Shell Wrapper)\n${shellSha256}`;
+
+                if (pythonScript) {
+                    const pythonSha256 = await calculateSHA256(pythonScript);
+                    output += `\n\n# terp-installer.py (Python Installer)\n${pythonSha256}`;
+                } else {
+                    output += `\n\n# terp-installer.py (Python Installer)\n# Error: Could not fetch - ${pythonFetchError || 'Unknown error'}`;
+                }
+
+                sha256Element.value = output;
 
                 // Highlight the checksum briefly
                 sha256Element.style.background = 'rgba(152, 232, 193, 0.2)';
