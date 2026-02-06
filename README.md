@@ -17,10 +17,43 @@ python3 -m http.server 8000
 
 ## Installation Scripts
 
-The website serves two installation methods:
+### Quick Install (Interactive)
 
-1. **Shell Script** (macOS & Linux): `curl -sL https://terp.network/install | python3`
-2. **UV Tool**: `uvx --from terp-core terpd`
+**One-line install:**
+```bash
+curl -fsSL https://terp.network/get | bash
+```
+
+The installer will automatically:
+1. Check/install Python 3.6+
+2. Guide you through selecting installation type (node/client/localterp)
+3. Help you choose network (mainnet/testnet)
+4. Configure your node settings
+5. Optionally install cosmovisor and systemd service
+
+### Command-Line Options
+
+You can also use flags to skip certain prompts:
+
+```bash
+curl -fsSL https://terp.network/get | bash -s -- --install node --network morocco-1 --moniker "my-node"
+```
+
+**Available flags:**
+- `--install <node|client|localterp>` - Installation type
+- `--network <morocco-1|90u-4>` - Network to join
+- `--home <path>` - Installation directory (default: ~/.terp)
+- `--moniker <name>` - Node moniker (default: terp)
+- `--pruning <default|nothing|everything>` - Pruning settings
+- `--cosmovisor` - Install with cosmovisor
+- `--service` - Setup systemd service (Linux only)
+- `--overwrite` - Overwrite existing installation
+
+### Alternative: UV Tool
+
+```bash
+uvx --from terp-core terpd
+```
 
 ### Verifying Installation Script Integrity
 
@@ -45,21 +78,21 @@ a233f0863b439273e772b14d61b985c8a20e719c72506399adebff03551596c7  terp-installer
 **Using SHA256:**
 
 ```bash
-# Download the script
-curl -sL https://terp.network/install > terp-installer.py
+# Download the shell script
+curl -sL https://terp.network/get > terp-installer.sh
 
 # Verify with sha256sum (Linux)
-echo "0e2743c117a3be8e5648427e0e1d8863b7ac59e1e1cff428152eda99cf9dc970  terp-installer.py" | sha256sum -c
+echo "a233f0863b439273e772b14d61b985c8a20e719c72506399adebff03551596c7  terp-installer.sh" | sha256sum -c
 
 # Verify with shasum (macOS)
-echo "0e2743c117a3be8e5648427e0e1d8863b7ac59e1e1cff428152eda99cf9dc970  terp-installer.py" | shasum -a 256 -c
+echo "a233f0863b439273e772b14d61b985c8a20e719c72506399adebff03551596c7  terp-installer.sh" | shasum -a 256 -c
 ```
 
 **Using BLAKE3:**
 
 ```bash
-# Download the script
-curl -sL https://terp.network/install > terp-installer.py
+# Download the shell script
+curl -sL https://terp.network/get > terp-installer.sh
 
 # Install b3sum if not already installed
 # macOS: brew install b3sum
@@ -67,13 +100,13 @@ curl -sL https://terp.network/install > terp-installer.py
 # or download from: https://github.com/BLAKE3-team/BLAKE3
 
 # Verify with b3sum
-echo "3113805970499a614c8dda2b8d2730bade6f0b0a3d5a8fa99bac4e9856396cee  terp-installer.py" | b3sum --check
+echo "8c1826931f3c9c620dddabe6756881a2a51aa977c24b60842eca697dfd40ebb7  terp-installer.sh" | b3sum --check
 ```
 
 **Expected output on successful verification:**
 
 ```
-terp-installer.py: OK
+terp-installer.sh: OK
 ```
 
 ⚠️ **Security Note:** Always verify checksums from multiple trusted sources (GitHub releases, official documentation, etc.) to ensure the checksums themselves haven't been tampered with.
@@ -82,26 +115,51 @@ terp-installer.py: OK
 
 ### Using Docker
 
-Build and run the Docker container:
+Build and run the Docker container from repo root:
 
 ```bash
-docker-compose up --build
+docker-compose -f docker/docker-compose.yml up --build
+```
+
+Or from the docker directory:
+
+```bash
+cd docker && docker-compose up --build
 ```
 
 The website will be available at `http://localhost:8080`
 
 ### Manual Build
 
-Build the Docker image manually:
+Build the Docker image manually for single architecture:
 
 ```bash
-docker build -t terpnetwork/terp-network:latest .
+docker build -f docker/Dockerfile -t terpnetwork/terp-website:latest .
+```
+
+Build for multiple architectures (amd64 and arm64):
+
+```bash
+# Create a builder instance (first time only)
+docker buildx create --name multiarch --use
+
+# Build and push multi-architecture image
+docker buildx build -f docker/Dockerfile \
+  --platform linux/amd64,linux/arm64 \
+  -t terpnetwork/terp-website:latest \
+  --push .
+
+# Or build without pushing (loads single arch to local)
+docker buildx build -f docker/Dockerfile \
+  --platform linux/amd64,linux/arm64 \
+  -t terpnetwork/terp-website:latest \
+  --load .
 ```
 
 Run the container:
 
 ```bash
-docker run -p 8080:80 terpnetwork/terp-network:latest
+docker run -p 8080:80 terpnetwork/terp-website:latest
 ```
 
 ## Project Structure
@@ -109,38 +167,59 @@ docker run -p 8080:80 terpnetwork/terp-network:latest
 ```
 terp.network/
 ├── index.html              # Main website file
-├── Dockerfile              # Docker configuration
-├── docker-compose.yml      # Docker Compose configuration
-├── nginx.conf              # NGINX server configuration
 ├── robots.txt              # SEO robots file
+├── README.md               # This file
 ├── public/                 # Public assets
 │   ├── favicon/           # Favicon files
 │   ├── sitemap.xml        # SEO sitemap
 │   └── site.webmanifest   # PWA manifest
-└── install/                # Installation scripts
-    ├── terp-installer.py  # Python installer script
-    └── terp-installer.sh  # Shell installer script
+├── get/                    # Installation scripts
+│   ├── terp-installer.py  # Python installer script
+│   └── terp-installer.sh  # Shell installer script
+└── docker/                 # Docker deployment files
+    ├── Dockerfile         # Docker image configuration
+    ├── docker-compose.yml # Docker Compose setup
+    ├── nginx.conf         # NGINX server configuration
+    ├── entrypoint.sh      # Container entrypoint script
+    └── deploy.yaml        # Akash deployment manifest
 ```
 
 ## Deployment
 
 ### Docker Registry
 
-Push to Docker registry:
+Push single architecture to Docker registry:
 
 ```bash
-docker-compose build
-docker push terpnetwork/terp-network:latest
+docker-compose -f docker/docker-compose.yml build
+docker push terpnetwork/terp-website:latest
+```
+
+Push multi-architecture image to Docker registry:
+
+```bash
+# Build and push for both amd64 and arm64
+docker buildx build -f docker/Dockerfile \
+  --platform linux/amd64,linux/arm64 \
+  -t terpnetwork/terp-website:latest \
+  --push .
 ```
 
 ### Akash Network
 
-Deploy to Akash using the provided SDL (see terp-installer repo for SDL examples).
+Deploy to Akash using the provided SDL:
+
+```bash
+akash tx deployment create docker/deploy.yaml --from <your-wallet>
+```
+
+See `docker/deploy.yaml` for the deployment manifest.
 
 ## Installation Script Endpoints
 
-- `/run` - Shell installation script
-- `/install` - Python installation script
+- `/get` - Shell wrapper script (downloads and runs Python installer)
+- `/run` - Python installer script (main installation logic)
+- `/get/` - Directory access for individual files and checksum verification
 
 ## Development
 

@@ -1276,9 +1276,9 @@
                 // Fetch Python script with multiple fallback attempts
                 let pythonFetchError = null;
                 const pythonPaths = [
+                    '/run',
                     'get/terp-installer.py',
-                    '/get/terp-installer.py',
-                    './get/terp-installer.py'
+                    '/get/terp-installer.py'
                 ];
 
                 for (const path of pythonPaths) {
