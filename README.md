@@ -20,11 +20,13 @@ python3 -m http.server 8000
 ### Quick Install (Interactive)
 
 **One-line install:**
+
 ```bash
 curl -fsSL https://terp.network/get | bash
 ```
 
 The installer will automatically:
+
 1. Check/install Python 3.6+
 2. Guide you through selecting installation type (node/client/localterp)
 3. Help you choose network (mainnet/testnet)
@@ -40,6 +42,7 @@ curl -fsSL https://terp.network/get | bash -s -- --install node --network morocc
 ```
 
 **Available flags:**
+
 - `--install <node|client|localterp>` - Installation type
 - `--network <morocco-1|90u-4>` - Network to join
 - `--home <path>` - Installation directory (default: ~/.terp)
@@ -144,16 +147,7 @@ Build for multiple architectures (amd64 and arm64):
 docker buildx create --name multiarch --use
 
 # Build and push multi-architecture image
-docker buildx build -f docker/Dockerfile \
-  --platform linux/amd64,linux/arm64 \
-  -t terpnetwork/terp-website:latest \
-  --push .
-
-# Or build without pushing (loads single arch to local)
-docker buildx build -f docker/Dockerfile \
-  --platform linux/amd64,linux/arm64 \
-  -t terpnetwork/terp-website:latest \
-  --load .
+docker buildx build -f docker/Dockerfile --platform linux/amd64,linux/arm64 -t terpnetwork/terp-website:v2.0.4 --push .
 ```
 
 Run the container:

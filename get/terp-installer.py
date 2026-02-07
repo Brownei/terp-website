@@ -240,13 +240,13 @@ def clear_screen():
 
 def safe_input(prompt):
     """
-    Wrapper around input() that handles EOFError gracefully.
+    Wrapper around input() that handles EOFError and KeyboardInterrupt gracefully.
 
     Args:
         prompt (str): The prompt to display to the user.
 
     Returns:
-        str: The user's input, or exits the program if EOF is encountered.
+        str: The user's input, or exits the program if EOF or Ctrl+C is encountered.
     """
     try:
         return input(prompt)
@@ -260,6 +260,10 @@ def safe_input(prompt):
         print("  --moniker <name>")
         print("\nFor full options, run: python3 terp-installer.py --help")
         sys.exit(1)
+    except KeyboardInterrupt:
+        print(bcolors.OKGREEN + "\n\nInstallation cancelled by user." + bcolors.ENDC)
+        print("Exiting...")
+        sys.exit(0)
 
 # Messages
 
@@ -711,12 +715,17 @@ def download_binary(network):
     Raises:
         SystemExit: If the binary download URL is not available for the current operating system and architecture.
     """
-    binary_path = os.path.join(args.binary_path, "terpd")
+    binary_path = os.path.expanduser(os.path.join(args.binary_path, "terpd"))
 
     if not args.overwrite:
-        # Check if terpd is already installed
+        # Check if terpd is already installed by sourcing ~/.profile first
         try:
-            subprocess.run([binary_path, "version"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            subprocess.run(
+                ["sh", "-c", "source ~/.profile && terpd version"],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
             print("terpd is already installed at " + bcolors.OKGREEN + f"{binary_path}" + bcolors.ENDC)
             while True:
                 choice = safe_input("Do you want to skip the download or overwrite the binary? (skip/overwrite): ").strip().lower()
@@ -728,7 +737,7 @@ def download_binary(network):
                     break
                 else:
                     print("Invalid input. Please enter 'skip' or 'overwrite'.")
-        except FileNotFoundError:
+        except (subprocess.CalledProcessError, FileNotFoundError):
             print("terpd is not installed. Proceeding with download.")
 
     operating_system = platform.system().lower()
@@ -1094,7 +1103,7 @@ Do you want to install cosmovisor?
         sys.exit(0)
 
     try:
-        binary_path = os.path.join(args.binary_path, "cosmovisor")
+        binary_path = os.path.expanduser(os.path.join(args.binary_path, "cosmovisor"))
 
         print("Downloading " + bcolors.PURPLE+ "cosmovisor" + bcolors.ENDC, end="\n\n")
         print("from " + bcolors.OKGREEN + f"{binary_url}" + bcolors.ENDC, end=" ")

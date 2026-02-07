@@ -225,6 +225,7 @@
             max-height: 0;
             overflow: hidden;
             transition: max-height 0.4s ease;
+            position: relative;
         }
 
         .install-content.expanded {
@@ -950,6 +951,82 @@
             width: 10%;
             height: auto;
         }
+
+        /* Mobile Overlay for Install Section */
+        .mobile-overlay {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 100;
+            border-radius: 4px;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+
+        .mobile-overlay.active {
+            display: flex;
+        }
+
+        .mobile-overlay-icon {
+            width: 60px;
+            height: 60px;
+            fill: #fe7d7d;
+            margin-bottom: 1.5rem;
+            opacity: 0.9;
+        }
+
+        .mobile-overlay-title {
+            color: #fe7d7d;
+            font-size: 1.25rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            text-align: center;
+            line-height: 1.3;
+        }
+
+        .mobile-overlay-text {
+            color: rgba(207, 255, 207, 0.9);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            text-align: center;
+            max-width: 400px;
+            margin-bottom: 1.5rem;
+        }
+
+        .mobile-overlay-hint {
+            color: rgba(207, 255, 207, 0.6);
+            font-size: 0.8rem;
+            text-align: center;
+            font-style: italic;
+        }
+
+        @media (max-width: 600px) {
+            .mobile-overlay-icon {
+                width: 50px;
+                height: 50px;
+            }
+
+            .mobile-overlay-title {
+                font-size: 1.1rem;
+            }
+
+            .mobile-overlay-text {
+                font-size: 0.85rem;
+            }
+
+            .mobile-overlay-hint {
+                font-size: 0.75rem;
+            }
+        }
     </style>
 </head>
 
@@ -994,6 +1071,22 @@
 
             <!-- Installation Content (Collapsible) -->
             <div class="install-content" id="install-content">
+                <!-- Mobile Device Overlay -->
+                <div class="mobile-overlay" id="mobile-overlay">
+                    <svg class="mobile-overlay-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M17 1H7c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2zm0 18H7V5h10v14z"/>
+                        <path d="M12 18.5c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5-1.5.67-1.5 1.5.67 1.5 1.5 1.5z"/>
+                    </svg>
+                    <div class="mobile-overlay-title">Desktop Installation Only</div>
+                    <div class="mobile-overlay-text">
+                        The Terp Network installer is designed for Linux and macOS servers or desktop environments.
+                        Mobile devices are not supported for running validator nodes or blockchain infrastructure.
+                    </div>
+                    <div class="mobile-overlay-hint">
+                        Please visit this page from a desktop computer to access installation instructions.
+                    </div>
+                </div>
+
                 <div class="install-subtitle">
                     To install the primary software for Terp-Network, copy and paste this script into your terminal:
                 </div>
@@ -1458,6 +1551,24 @@
         }
 
         requestAnimationFrame(draw);
+
+        // Mobile device detection for install section
+        function checkMobileAndUpdateOverlay() {
+            const mobileOverlay = document.getElementById('mobile-overlay');
+            const isMobile = window.innerWidth <= 768; // Mobile/tablet breakpoint
+
+            if (isMobile) {
+                mobileOverlay.classList.add('active');
+            } else {
+                mobileOverlay.classList.remove('active');
+            }
+        }
+
+        // Check on page load
+        checkMobileAndUpdateOverlay();
+
+        // Check on window resize
+        window.addEventListener('resize', checkMobileAndUpdateOverlay);
     </script>
 </body>
 
