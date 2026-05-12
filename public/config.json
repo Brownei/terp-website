@@ -1,0 +1,133 @@
+{
+  "chains": {
+    "120u-1": {
+      "bech32Prefix": "terp",
+      "chainId": "120u-1",
+      "chainName": "Local Terp",
+      "configAccount": "terp-official",
+      "contracts": {
+        "accountMinter": "terp14ejqjyq8um4p3xfqj74yld5waqljf88fz25yxnma0cngspxe3les6vkktx",
+        "cw721Svg": "terp1sgnlczhpdhn7sv9dts4tcuy3tpu8srckrn5gpjnu7x96pw383z6spdylc3",
+        "cwInfusionMinter": "",
+        "cwSvgMinter": "terp1wug8sewp6cedgkmrmvhl3lf3tulagm9hnvy8p0rppz9yjw0g4wtqw39a47",
+        "daoCalendar": "",
+        "headstash": "",
+        "headstashManifold": "",
+        "shitstrapFactory": "terp16jzpxp0e8550c9aht6q9svcux30vtyyyyxv5w2l2djjra46580wsgp89hp",
+        "terp721Account": "terp1sfgdede70w7t0xj0qvm65p6pcmk9fh2qywf04rd228fhrrs77tps7xjkm2",
+        "zkWasmvmTest": ""
+      },
+      "defaultApps": [
+        {
+          "disabled": false,
+          "id": "tabs",
+          "title": "Names",
+          "url": "/tabs.html"
+        },
+        {
+          "disabled": false,
+          "id": "tabs",
+          "title": "No Rick",
+          "url": "/no-rick.html"
+        }
+      ],
+      "denom": {
+        "decimals": 6,
+        "fee": "uthiol",
+        "feeDisplay": "THIOL",
+        "stake": "uterp",
+        "stakeDisplay": "TERP"
+      },
+      "explorer": "",
+      "gasPriceStep": {
+        "average": 0.025,
+        "high": 0.04,
+        "low": 0.01
+      },
+      "grpc": "http://localhost:55007",
+      "rest": "http://localhost:55006",
+      "rpc": "http://localhost:3000/rpc",
+      "services": {
+        "headstashServer": "",
+        "indexer": "",
+        "merkleServer": ""
+      }
+    },
+    "morocco-1": {
+      "bech32Prefix": "terp",
+      "chainId": "morocco-1",
+      "chainName": "Terp Network",
+      "configAccount": "terp-official",
+      "contracts": {
+        "accountMinter": "",
+        "cw721Svg": "",
+        "cwInfusionMinter": "",
+        "cwSvgMinter": "",
+        "daoCalendar": "",
+        "headstash": "",
+        "headstashManifold": "",
+        "shitstrapFactory": "",
+        "terp721Account": "",
+        "zkWasmvmTest": ""
+      },
+      "defaultApps": [
+        {
+          "id": "svg",
+          "title": "SVG NFTs",
+          "url": "/svg.html"
+        },
+        {
+          "id": "no-rick",
+          "title": "No Rick",
+          "url": "/no-rick.html"
+        },
+        {
+          "disabled": true,
+          "id": "tabs",
+          "title": "Terp Account Billboards",
+          "url": "/tabs.html"
+        }
+      ],
+      "denom": {
+        "decimals": 6,
+        "fee": "uthiol",
+        "feeDisplay": "THIOL",
+        "stake": "uterp",
+        "stakeDisplay": "TERP"
+      },
+      "explorer": "https://ping.pub/terp",
+      "gasPriceStep": {
+        "average": 0.025,
+        "high": 0.04,
+        "low": 0.01
+      },
+      "grpc": "https://grpc.terp.network",
+      "rest": "https://api.terp.network",
+      "rpc": "https://rpc.terp.network",
+      "services": {
+        "headstashServer": "",
+        "indexer": "",
+        "merkleServer": ""
+      }
+    }
+  },
+  "checksums": {
+    "bundles": {
+      "lib/account-minter.js": "8b9147543b2970dfa4e2bc0d679188119f7a2c4b586f0c55691ebfd8a9835df9",
+      "lib/cw-infuser-factory.js": "6be6eb065c48129aeb75c5e86138e67993e2f6b301efd7a2aba23d98c7240f7a",
+      "lib/cw-infuser.js": "9893655977c1b8155e7e6cef9d77e731dd08fe63f1d4572982efaa9b5f5393e9",
+      "lib/cw-shitstrap-factory.js": "415aabd65826e047ac5d89ecf8fa9b8c20249e85e57e6a068dbad5c77cb256de",
+      "lib/cw-shitstrap.js": "b375c9f8970fea6180b2e2d97ae0647cda83da26ff89c024b83c1628914ca616",
+      "lib/cw-svg-minter.js": "d5fd8bb9c685cf927efdbc2f3bab548472a18577738b1412423c670524a8b1dc",
+      "lib/cw721-svg.js": "2d83752b4763beacee3408aa8fd500bb8430cab4fe64acae9bdf61ef08d041ca",
+      "lib/oline.js": "13e3a495b202eab3c04db323be21281060906a486622b6cf780776d2f2342c32",
+      "lib/terp721-account.js": "3493d45a99c1ff1ce99bc4b9bcab52e4a54ea734b55f5f504e5dcbe69b6e8790",
+      "lib/whitelist-merkletree.js": "d78a1780b424b847840373be308477e94184c2caa1a11388c0a26b49d21fc036"
+    },
+    "installers": {
+      "get/terp-installer.py": "6fc64444ce65e63a96ade2af4920481e51362f9b5513300300faf1bf48232485",
+      "get/terp-installer.sh": "8a1d26facf8bda472a6275ad94fe690eae0c25854131b341a509d5aeb3c09cc6"
+    }
+  },
+  "version": "1.0.0"
+}

@@ -1,0 +1,210 @@
+{
+  "chain": {
+    "chainId": "morocco-1",
+    "bech32Prefix": "terp",
+    "denom": "uthiol",
+    "denomDisplay": "THIOL",
+    "stakeDenom": "uterp",
+    "stakeDisplay": "TERP",
+    "decimals": 6
+  },
+  "modules": {
+    "bank": {
+      "label": "Bank",
+      "icon": "B",
+      "actions": {
+        "send": {
+          "label": "Send Tokens",
+          "description": "Transfer tokens to another address",
+          "typeUrl": "/cosmos.bank.v1beta1.MsgSend",
+          "fields": [
+            { "key": "toAddress", "label": "Recipient", "type": "address", "required": true, "placeholder": "terp1..." },
+            { "key": "amount", "label": "Amount", "type": "coin", "required": true }
+          ]
+        }
+      }
+    },
+    "staking": {
+      "label": "Staking",
+      "icon": "S",
+      "actions": {
+        "delegate": {
+          "label": "Delegate",
+          "description": "Delegate tokens to a validator",
+          "typeUrl": "/cosmos.staking.v1beta1.MsgDelegate",
+          "fields": [
+            { "key": "validatorAddress", "label": "Validator", "type": "validator-address", "required": true, "placeholder": "terpvaloper1..." },
+            { "key": "amount", "label": "Amount", "type": "stake-coin", "required": true }
+          ]
+        },
+        "undelegate": {
+          "label": "Undelegate",
+          "description": "Undelegate tokens from a validator",
+          "typeUrl": "/cosmos.staking.v1beta1.MsgUndelegate",
+          "fields": [
+            { "key": "validatorAddress", "label": "Validator", "type": "validator-address", "required": true, "placeholder": "terpvaloper1..." },
+            { "key": "amount", "label": "Amount", "type": "stake-coin", "required": true }
+          ]
+        },
+        "redelegate": {
+          "label": "Redelegate",
+          "description": "Move delegation from one validator to another",
+          "typeUrl": "/cosmos.staking.v1beta1.MsgBeginRedelegate",
+          "fields": [
+            { "key": "validatorSrcAddress", "label": "From Validator", "type": "validator-address", "required": true, "placeholder": "terpvaloper1..." },
+            { "key": "validatorDstAddress", "label": "To Validator", "type": "validator-address", "required": true, "placeholder": "terpvaloper1..." },
+            { "key": "amount", "label": "Amount", "type": "stake-coin", "required": true }
+          ]
+        },
+        "withdrawRewards": {
+          "label": "Withdraw Rewards",
+          "description": "Withdraw staking rewards from a validator",
+          "typeUrl": "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward",
+          "fields": [
+            { "key": "validatorAddress", "label": "Validator", "type": "validator-address", "required": true, "placeholder": "terpvaloper1..." }
+          ]
+        }
+      }
+    },
+    "wasm": {
+      "label": "WASM",
+      "icon": "W",
+      "actions": {
+        "execute": {
+          "label": "Execute Contract",
+          "description": "Execute a message on a CosmWasm contract",
+          "typeUrl": "/cosmwasm.wasm.v1.MsgExecuteContract",
+          "fields": [
+            { "key": "contract", "label": "Contract Address", "type": "address", "required": true, "placeholder": "terp1..." },
+            { "key": "msg", "label": "Message (JSON)", "type": "json", "required": true, "placeholder": "{\"method\":{\"param\":\"value\"}}" },
+            { "key": "funds", "label": "Funds", "type": "coins", "required": false }
+          ]
+        },
+        "instantiate": {
+          "label": "Instantiate Contract",
+          "description": "Create a new contract instance from a stored code",
+          "typeUrl": "/cosmwasm.wasm.v1.MsgInstantiateContract",
+          "fields": [
+            { "key": "codeId", "label": "Code ID", "type": "number", "required": true, "placeholder": "1" },
+            { "key": "label", "label": "Label", "type": "text", "required": true, "placeholder": "My Contract" },
+            { "key": "msg", "label": "Init Message (JSON)", "type": "json", "required": true, "placeholder": "{}" },
+            { "key": "funds", "label": "Funds", "type": "coins", "required": false },
+            { "key": "admin", "label": "Admin", "type": "address", "required": false, "placeholder": "terp1... (optional)" }
+          ]
+        },
+        "migrate": {
+          "label": "Migrate Contract",
+          "description": "Migrate a contract to a new code version",
+          "typeUrl": "/cosmwasm.wasm.v1.MsgMigrateContract",
+          "fields": [
+            { "key": "contract", "label": "Contract Address", "type": "address", "required": true, "placeholder": "terp1..." },
+            { "key": "newCodeId", "label": "New Code ID", "type": "number", "required": true, "placeholder": "2" },
+            { "key": "msg", "label": "Migrate Message (JSON)", "type": "json", "required": true, "placeholder": "{}" }
+          ]
+        },
+        "updateAdmin": {
+          "label": "Update Admin",
+          "description": "Change the admin of a contract",
+          "typeUrl": "/cosmwasm.wasm.v1.MsgUpdateAdmin",
+          "fields": [
+            { "key": "contract", "label": "Contract Address", "type": "address", "required": true, "placeholder": "terp1..." },
+            { "key": "newAdmin", "label": "New Admin", "type": "address", "required": true, "placeholder": "terp1..." }
+          ]
+        }
+      }
+    },
+    "ibc": {
+      "label": "IBC",
+      "icon": "I",
+      "actions": {
+        "transfer": {
+          "label": "IBC Transfer",
+          "description": "Transfer tokens to another chain via IBC",
+          "typeUrl": "/ibc.applications.transfer.v1.MsgTransfer",
+          "fields": [
+            { "key": "sourceChannel", "label": "Source Channel", "type": "text", "required": true, "placeholder": "channel-0" },
+            { "key": "receiver", "label": "Receiver", "type": "text", "required": true, "placeholder": "cosmos1..." },
+            { "key": "token", "label": "Token", "type": "coin", "required": true },
+            { "key": "timeoutMinutes", "label": "Timeout (minutes)", "type": "number", "required": false, "placeholder": "10" }
+          ]
+        }
+      }
+    },
+    "gov": {
+      "label": "Gov",
+      "icon": "G",
+      "actions": {
+        "vote": {
+          "label": "Vote on Proposal",
+          "description": "Cast a vote on a governance proposal",
+          "typeUrl": "/cosmos.gov.v1beta1.MsgVote",
+          "fields": [
+            { "key": "proposalId", "label": "Proposal ID", "type": "number", "required": true, "placeholder": "1" },
+            { "key": "option", "label": "Vote Option", "type": "enum", "required": true, "options": [
+              { "value": "1", "label": "Yes" },
+              { "value": "2", "label": "Abstain" },
+              { "value": "3", "label": "No" },
+              { "value": "4", "label": "No With Veto" }
+            ]}
+          ]
+        }
+      }
+    },
+    "feegrant": {
+      "label": "FeeGrant",
+      "icon": "F",
+      "actions": {
+        "grant": {
+          "label": "Grant Fee Allowance",
+          "description": "Grant fee spending allowance to another address",
+          "typeUrl": "/cosmos.feegrant.v1beta1.MsgGrantAllowance",
+          "fields": [
+            { "key": "grantee", "label": "Grantee", "type": "address", "required": true, "placeholder": "terp1..." },
+            { "key": "spendLimit", "label": "Spend Limit", "type": "coin", "required": false },
+            { "key": "expiration", "label": "Expiration (ISO date)", "type": "text", "required": false, "placeholder": "2025-12-31T23:59:59Z" }
+          ]
+        },
+        "revoke": {
+          "label": "Revoke Fee Allowance",
+          "description": "Revoke a fee spending allowance",
+          "typeUrl": "/cosmos.feegrant.v1beta1.MsgRevokeAllowance",
+          "fields": [
+            { "key": "grantee", "label": "Grantee", "type": "address", "required": true, "placeholder": "terp1..." }
+          ]
+        }
+      }
+    },
+    "tokenfactory": {
+      "label": "TokenFactory",
+      "icon": "T",
+      "actions": {
+        "createDenom": {
+          "label": "Create Denom",
+          "description": "Create a new token denomination",
+          "typeUrl": "/osmosis.tokenfactory.v1beta1.MsgCreateDenom",
+          "fields": [
+            { "key": "subdenom", "label": "Subdenom", "type": "text", "required": true, "placeholder": "mytoken" }
+          ]
+        },
+        "mint": {
+          "label": "Mint Tokens",
+          "description": "Mint tokens of a factory denomination",
+          "typeUrl": "/osmosis.tokenfactory.v1beta1.MsgMint",
+          "fields": [
+            { "key": "amount", "label": "Amount", "type": "coin-factory", "required": true },
+            { "key": "mintToAddress", "label": "Mint To", "type": "address", "required": false, "placeholder": "terp1... (defaults to sender)" }
+          ]
+        },
+        "burn": {
+          "label": "Burn Tokens",
+          "description": "Burn tokens of a factory denomination",
+          "typeUrl": "/osmosis.tokenfactory.v1beta1.MsgBurn",
+          "fields": [
+            { "key": "amount", "label": "Amount", "type": "coin-factory", "required": true },
+            { "key": "burnFromAddress", "label": "Burn From", "type": "address", "required": false, "placeholder": "terp1... (defaults to sender)" }
+          ]
+        }
+      }
+    }
+  }
+}

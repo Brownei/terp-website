@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="description" content="No-Rick ZK proof demo on Terp Network. Client-side halo2 proof generation with on-chain verification via custom wasmvm.">
+    <title>No Rick | Terp Network — ZK Proof Demo</title>
+
+    <link rel="icon" type="image/x-icon" href="/public/favicon/terp-32x32.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/public/favicon/terp-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/public/favicon/terp-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/public/favicon/terp-apple-touch.png">
+
+    <link rel="preconnect" href="https://fonts.cdnfonts.com/css/satoshi">
+    <link href="https://fonts.cdnfonts.com/css/satoshi" rel="stylesheet">
+    <link rel="stylesheet" href="/public/global.css">
+
+    <style>
+        .btn-faucet {
+            background: rgba(255, 184, 108, 0.1);
+            border: 1px solid rgba(255, 184, 108, 0.3);
+            color: #ffb86c; padding: 0.5rem 1rem;
+            font-family: 'Satoshi', sans-serif; font-size: 0.8rem;
+            cursor: pointer; border-radius: 4px;
+            transition: all 0.2s ease;
+            display: none;
+        }
+        .btn-faucet:hover {
+            background: rgba(255, 184, 108, 0.2);
+            border-color: rgba(255, 184, 108, 0.5);
+        }
+
+        .main {
+            position: relative; z-index: 1;
+            max-width: 700px; width: 100%;
+            margin: 0 auto;
+            padding: 6rem 1.5rem 3rem;
+            min-height: 100vh;
+            display: flex; flex-direction: column;
+            align-items: center;
+        }
+
+        .page-title {
+            font-size: 2.2rem; font-weight: 500;
+            color: #cfffcf;
+            text-shadow: 0 0 30px rgba(183, 255, 183, 0.07);
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            font-size: 0.85rem; color: #ffffda;
+            text-shadow: 0 0 3px rgba(71, 50, 102, 0.9);
+            text-transform: uppercase; letter-spacing: 0.12em;
+            text-align: center; margin-bottom: 2.5rem;
+        }
+
+        .proof-card {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(152, 232, 193, 0.1);
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .proof-card label {
+            display: block;
+            font-size: 0.85rem;
+            color: #d2d3d8;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .proof-card input[type="text"] {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(152, 232, 193, 0.15);
+            border-radius: 4px;
+            color: #f8f8f2;
+            font-family: monospace;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .proof-card input[type="text"]:focus {
+            border-color: rgba(152, 232, 193, 0.4);
+        }
+
+        .forbidden-display {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            padding: 0.75rem 1rem;
+            background: rgba(255, 85, 85, 0.05);
+            border: 1px solid rgba(255, 85, 85, 0.15);
+            border-radius: 4px;
+        }
+        .forbidden-display .label {
+            font-size: 0.8rem;
+            color: #ff5555;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .forbidden-display .word {
+            font-family: monospace;
+            font-size: 1.1rem;
+            color: #ff5555;
+            font-weight: 500;
+        }
+
+        .btn-prove {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: rgba(152, 232, 193, 0.12);
+            border: 1px solid rgba(152, 232, 193, 0.3);
+            color: #98e8c1;
+            font-family: 'Satoshi', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+        .btn-prove:hover:not(:disabled) {
+            background: rgba(152, 232, 193, 0.2);
+            border-color: rgba(152, 232, 193, 0.5);
+            box-shadow: 0 0 20px rgba(152, 232, 193, 0.1);
+        }
+        .btn-prove:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .result-area {
+            width: 100%;
+            min-height: 80px;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(152, 232, 193, 0.08);
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .result-area .verdict {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .result-area .verdict.randy { color: #98e8c1; }
+        .result-area .verdict.rick { color: #ff5555; }
+
+        .result-area .tx-hash {
+            font-size: 0.75rem;
+            color: #d2d3d8;
+            font-family: monospace;
+            word-break: break-all;
+        }
+
+        .result-area .error-msg {
+            color: #ff5555;
+            font-size: 0.85rem;
+        }
+
+        .wasm-status {
+            font-size: 0.75rem;
+            color: #6272a4;
+            text-align: center;
+            margin-top: 1rem;
+        }
+        .wasm-status.ready { color: #98e8c1; }
+
+        /* ── Progress pipeline ────────────────────────────────── */
+        .progress-pipeline {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            gap: 0;
+            margin-bottom: 1.25rem;
+        }
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.35rem;
+            min-width: 70px;
+        }
+        .step .circle {
+            width: 20px; height: 20px;
+            border-radius: 50%;
+            background: #6272a4;
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+        .step .label {
+            font-size: 0.7rem;
+            color: #6272a4;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            transition: color 0.3s;
+        }
+        .step .elapsed {
+            font-size: 0.65rem;
+            color: #d2d3d8;
+            font-family: monospace;
+            min-height: 1em;
+        }
+        .step.active .circle {
+            background: #98e8c1;
+            box-shadow: 0 0 12px rgba(152, 232, 193, 0.5);
+            animation: throb 1.2s ease infinite;
+        }
+        .step.active .label { color: #98e8c1; }
+        .step.done .circle {
+            background: #98e8c1;
+            box-shadow: none;
+            animation: none;
+        }
+        .step.done .label { color: #98e8c1; }
+        .step.error .circle {
+            background: #ff5555;
+            box-shadow: 0 0 10px rgba(255, 85, 85, 0.4);
+            animation: none;
+        }
+        .step.error .label { color: #ff5555; }
+        @keyframes throb {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.6; }
+        }
+        .step-line {
+            width: 40px; height: 2px;
+            background: #6272a4;
+            margin-top: 9px;
+            flex-shrink: 0;
+        }
+
+        /* ── Proof data display ──────────────────────────────── */
+        .proof-display {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(152, 232, 193, 0.15);
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+        .proof-toggle {
+            padding: 0.6rem 0.8rem;
+            font-size: 0.8rem;
+            color: #98e8c1;
+            cursor: pointer;
+            user-select: none;
+        }
+        .proof-toggle:hover { color: #cfffcf; }
+        .proof-content {
+            padding: 0 0.8rem 0.8rem;
+            max-height: 300px;
+            overflow-y: auto;
+            transition: max-height 0.3s ease;
+        }
+        .proof-section { margin-bottom: 0.6rem; }
+        .proof-label {
+            font-size: 0.65rem;
+            color: #6272a4;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 0.2rem;
+        }
+        .proof-b64 {
+            font-family: monospace;
+            font-size: 0.75rem;
+            color: #d2d3d8;
+            word-break: break-all;
+            line-height: 1.4;
+        }
+        .proof-msg {
+            font-family: monospace;
+            font-size: 0.72rem;
+            color: #d2d3d8;
+            white-space: pre-wrap;
+            word-break: break-all;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        #status-text {
+            font-size: 0.82rem;
+            color: #d2d3d8;
+            text-align: center;
+            margin-bottom: 0.75rem;
+        }
+
+        /* ── Rewards display ─────────────────────────────────── */
+        .rewards-strip {
+            width: 100%;
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        .reward-card {
+            flex: 1;
+            padding: 0.8rem 1rem;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            transition: box-shadow 0.3s;
+        }
+        .reward-card.randy-card {
+            background: rgba(152, 232, 193, 0.04);
+            border: 1px solid rgba(152, 232, 193, 0.12);
+        }
+        .reward-card.rick-card {
+            background: rgba(255, 85, 85, 0.04);
+            border: 1px solid rgba(255, 85, 85, 0.12);
+        }
+        .reward-card.highlight {
+            box-shadow: 0 0 16px rgba(152, 232, 193, 0.25);
+        }
+        .reward-card.highlight.rick-card {
+            box-shadow: 0 0 16px rgba(255, 85, 85, 0.25);
+        }
+        .reward-card .reward-outcome {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        .randy-card .reward-outcome { color: #98e8c1; }
+        .rick-card .reward-outcome { color: #ff5555; }
+        .reward-card .reward-token {
+            font-size: 1.1rem;
+            font-weight: 600;
+            font-family: monospace;
+        }
+        .randy-card .reward-token { color: #98e8c1; }
+        .rick-card .reward-token { color: #ff5555; }
+        .reward-card .reward-condition {
+            font-size: 0.7rem;
+            color: #6272a4;
+            line-height: 1.3;
+        }
+        .reward-card .reward-balance {
+            font-size: 0.72rem;
+            font-family: monospace;
+            color: #d2d3d8;
+            margin-top: 0.2rem;
+            min-height: 1em;
+        }
+        .reward-card .reward-balance .bal-change {
+            font-weight: 600;
+        }
+        .randy-card .bal-change { color: #98e8c1; }
+        .rick-card .bal-change { color: #ff5555; }
+
+        @media (max-width: 600px) {
+            .main { padding: 5rem 1rem 2rem; }
+            .page-title { font-size: 1.6rem; }
+            .proof-card { padding: 1.25rem; }
+            .step-line { width: 24px; }
+            .step { min-width: 56px; }
+            .rewards-strip { flex-direction: column; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="main">
+        <h1 class="page-title">No Rick</h1>
+        <div class="page-subtitle">Zero-Knowledge Proof Demo</div>
+
+        <div class="forbidden-display">
+            <div class="label">Forbidden word</div>
+            <div class="word">rick</div>
+        </div>
+
+        <div class="proof-card">
+            <label for="secret-word">Your secret word</label>
+            <input type="text" id="secret-word" placeholder="Enter a word (not &quot;rick&quot;)" maxlength="20" autocomplete="off">
+            <button class="btn-prove" id="prove-btn" disabled>Generate Proof &amp; Submit</button>
+        </div>
+
+        <div class="rewards-strip">
+            <div class="reward-card randy-card" id="randy-reward">
+                <div class="reward-outcome">Valid proof</div>
+                <div class="reward-token">+1 RANDY</div>
+                <div class="reward-condition">Word is not &quot;rick&quot;</div>
+                <div class="reward-balance" id="randy-bal"></div>
+            </div>
+            <div class="reward-card rick-card" id="rick-reward">
+                <div class="reward-outcome">Invalid proof</div>
+                <div class="reward-token">+1 RICK</div>
+                <div class="reward-condition">Word is &quot;rick&quot;</div>
+                <div class="reward-balance" id="rick-bal"></div>
+            </div>
+        </div>
+
+        <div id="result" class="result-area">
+            <!-- Initial instructions -->
+            <div id="result-intro">
+                <p style="color:#6272a4; font-size:0.85rem;">
+                    Enter a word and submit a zero-knowledge proof that it is not the forbidden word.
+                    The proof is verified on-chain by the custom halo2 wasmvm.
+                </p>
+            </div>
+
+            <!-- Progress pipeline -->
+            <div id="progress" class="progress-pipeline" style="display:none;">
+                <div class="step" id="step-prove">
+                    <div class="circle"></div>
+                    <div class="label">Prove</div>
+                    <div class="elapsed" id="timer-prove"></div>
+                </div>
+                <div class="step-line"></div>
+                <div class="step" id="step-broadcast">
+                    <div class="circle"></div>
+                    <div class="label">Broadcast</div>
+                    <div class="elapsed" id="timer-broadcast"></div>
+                </div>
+                <div class="step-line"></div>
+                <div class="step" id="step-confirm">
+                    <div class="circle"></div>
+                    <div class="label">Confirm</div>
+                </div>
+            </div>
+
+            <!-- Status text -->
+            <div id="status-text" style="display:none;"></div>
+
+            <!-- Proof data (collapsible) -->
+            <div id="proof-display" class="proof-display" style="display:none;">
+                <div class="proof-toggle" id="proof-toggle">Proof data &#9656;</div>
+                <div class="proof-content" id="proof-content" style="display:none;">
+                    <div class="proof-section">
+                        <div class="proof-label">Proof (base64)</div>
+                        <div class="proof-b64" id="proof-b64"></div>
+                    </div>
+                    <div class="proof-section">
+                        <div class="proof-label">Execute message</div>
+                        <pre class="proof-msg" id="proof-msg"></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Final verdict -->
+            <div id="verdict-area" style="display:none;"></div>
+        </div>
+
+        <div id="wasm-status" class="wasm-status">Loading WASM...</div>
+    </main>
+
+    <script type="module">
+        import { loadWasm, generateProof, encodeProofMsg, isWasmReady } from '/lib/norick.js';
+        import { showFaucetModal } from '/lib/faucet.js';
+        import { applyNavGuard } from '/lib/nav-guard.js';
+        applyNavGuard();
+
+        const FORBIDDEN = 'rick';
+        const CONTRACT_CODE_ID = 1;
+
+        let config = null;
+        let chainConfig = null;
+        let walletAddress = null;
+        let randyBal = 0;
+        let rickBal = 0;
+
+        // ── Init ─────────────────────────────────────────────────────────
+
+        async function init() {
+            // Load config
+            try {
+                const res = await fetch('/public/config.json');
+                config = await res.json();
+                // Auto-detect chain: prefer local if available
+                chainConfig = config.chains['120u-1'] || config.chains['morocco-1'];
+            } catch (e) {
+                console.warn('Config load failed, using defaults', e);
+            }
+
+            // Show faucet button for local chain
+            if (chainConfig && chainConfig.chainId === '120u-1') {
+                document.getElementById('faucet-btn').style.display = 'block';
+            }
+
+            // Load WASM (includes halo2 prover)
+            const w = await loadWasm();
+            const statusEl = document.getElementById('wasm-status');
+            if (w) {
+                statusEl.textContent = 'WASM loaded — client-side proving ready';
+                statusEl.classList.add('ready');
+            } else {
+                statusEl.textContent = 'WASM unavailable — proof generation disabled';
+            }
+
+            // Enable prove button when WASM is ready
+            updateProveButton();
+        }
+
+        function updateProveButton() {
+            const btn = document.getElementById('prove-btn');
+            const word = document.getElementById('secret-word').value.trim();
+            btn.disabled = !isWasmReady() || !word || !walletAddress;
+        }
+
+        // ── Token Balances ──────────────────────────────────────────────
+
+        async function fetchRewardBalances() {
+            const contractAddr = chainConfig?.contracts?.zkWasmvmTest;
+            const restUrl = chainConfig?.rest;
+            if (!walletAddress || !contractAddr || !restUrl) {
+                document.getElementById('randy-bal').textContent = '';
+                document.getElementById('rick-bal').textContent = '';
+                return;
+            }
+
+            const randyDenom = `factory/${contractAddr}/randy`;
+            const rickDenom = `factory/${contractAddr}/rick`;
+
+            const query = async (denom) => {
+                try {
+                    const res = await fetch(`${restUrl}/cosmos/bank/v1beta1/balances/${walletAddress}/by_denom?denom=${encodeURIComponent(denom)}`);
+                    if (!res.ok) return 0;
+                    const json = await res.json();
+                    return parseInt(json.balance?.amount || '0', 10);
+                } catch { return 0; }
+            };
+
+            randyBal = await query(randyDenom);
+            rickBal = await query(rickDenom);
+
+            document.getElementById('randy-bal').textContent = `Balance: ${randyBal}`;
+            document.getElementById('rick-bal').textContent = `Balance: ${rickBal}`;
+        }
+
+        function highlightReward(isRick, prevRandy, prevRick) {
+            const id = isRick ? 'rick-reward' : 'randy-reward';
+            const balId = isRick ? 'rick-bal' : 'randy-bal';
+            const prev = isRick ? prevRick : prevRandy;
+            const cur = isRick ? rickBal : randyBal;
+            const diff = cur - prev;
+
+            const card = document.getElementById(id);
+            card.classList.add('highlight');
+
+            if (diff > 0) {
+                document.getElementById(balId).innerHTML =
+                    `Balance: ${cur} <span class="bal-change">(+${diff})</span>`;
+            }
+
+            setTimeout(() => card.classList.remove('highlight'), 4000);
+        }
+
+        // ── Wallet ───────────────────────────────────────────────────────
+
+        document.getElementById('wallet-btn').addEventListener('click', async () => {
+            if (walletAddress) {
+                walletAddress = null;
+                document.getElementById('wallet-btn').textContent = 'Connect Wallet';
+                document.getElementById('wallet-btn').classList.remove('connected');
+                updateProveButton();
+                fetchRewardBalances();
+                return;
+            }
+
+            try {
+                if (!window.keplr) {
+                    alert('Keplr wallet not found. Please install the Keplr extension.');
+                    return;
+                }
+
+                const chainId = chainConfig?.chainId || '120u-1';
+                // Suggest chain for local
+                if (chainId.startsWith('120u')) {
+                    await window.keplr.experimentalSuggestChain({
+                        chainId,
+                        chainName: chainConfig?.chainName || 'Local Terp',
+                        rpc: chainConfig?.rpc || 'http://localhost:26657',
+                        rest: chainConfig?.rest || 'http://localhost:1317',
+                        bip44: { coinType: 118 },
+                        bech32Config: {
+                            bech32PrefixAccAddr: 'terp',
+                            bech32PrefixAccPub: 'terppub',
+                            bech32PrefixValAddr: 'terpvaloper',
+                            bech32PrefixValPub: 'terpvaloperpub',
+                            bech32PrefixConsAddr: 'terpvalcons',
+                            bech32PrefixConsPub: 'terpvalconspub',
+                        },
+                        currencies: [{ coinDenom: 'TERP', coinMinimalDenom: 'uterp', coinDecimals: 6 }],
+                        feeCurrencies: [{ coinDenom: 'THIOL', coinMinimalDenom: 'uthiol', coinDecimals: 6, gasPriceStep: { low: 0.01, average: 0.025, high: 0.04 } }],
+                        stakeCurrency: { coinDenom: 'TERP', coinMinimalDenom: 'uterp', coinDecimals: 6 },
+                    });
+                }
+
+                await window.keplr.enable(chainId);
+                const offlineSigner = window.keplr.getOfflineSigner(chainId);
+                const accounts = await offlineSigner.getAccounts();
+                walletAddress = accounts[0].address;
+
+                const btn = document.getElementById('wallet-btn');
+                btn.textContent = walletAddress.slice(0, 10) + '...' + walletAddress.slice(-4);
+                btn.classList.add('connected');
+                updateProveButton();
+                fetchRewardBalances();
+            } catch (e) {
+                console.error('Wallet connect failed:', e);
+            }
+        });
+
+        // ── Faucet ───────────────────────────────────────────────────────
+
+        document.getElementById('faucet-btn').addEventListener('click', () => {
+            showFaucetModal(walletAddress || '');
+        });
+
+        // ── Proof Submission ─────────────────────────────────────────────
+
+        document.getElementById('secret-word').addEventListener('input', updateProveButton);
+
+        // ── Pipeline helpers ────────────────────────────────────────
+        function startTimer(el) {
+            const t0 = performance.now();
+            const id = setInterval(() => {
+                el.textContent = ((performance.now() - t0) / 1000).toFixed(1) + 's';
+            }, 100);
+            return () => { clearInterval(id); };
+        }
+
+        function setStep(stepId, state) {
+            const el = document.getElementById(stepId);
+            el.className = 'step ' + state;
+        }
+
+        function resetPipeline() {
+            ['step-prove', 'step-broadcast', 'step-confirm'].forEach(id => {
+                const el = document.getElementById(id);
+                el.className = 'step';
+            });
+            document.getElementById('timer-prove').textContent = '';
+            document.getElementById('timer-broadcast').textContent = '';
+            document.getElementById('proof-display').style.display = 'none';
+            document.getElementById('proof-content').style.display = 'none';
+            document.getElementById('proof-toggle').innerHTML = 'Proof data &#9656;';
+            document.getElementById('verdict-area').style.display = 'none';
+            document.getElementById('verdict-area').innerHTML = '';
+        }
+
+        // Proof toggle
+        document.getElementById('proof-toggle').addEventListener('click', () => {
+            const content = document.getElementById('proof-content');
+            const toggle = document.getElementById('proof-toggle');
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                toggle.innerHTML = 'Proof data &#9662;';
+            } else {
+                content.style.display = 'none';
+                toggle.innerHTML = 'Proof data &#9656;';
+            }
+        });
+
+        document.getElementById('prove-btn').addEventListener('click', async () => {
+            const word = document.getElementById('secret-word').value.trim();
+            const btn = document.getElementById('prove-btn');
+            const statusEl = document.getElementById('status-text');
+
+            if (!word || !walletAddress) return;
+
+            // Reset UI
+            btn.disabled = true;
+            btn.textContent = 'Proving...';
+            document.getElementById('result-intro').style.display = 'none';
+            document.getElementById('progress').style.display = 'flex';
+            statusEl.style.display = 'block';
+            resetPipeline();
+
+            let stopTimer = null;
+
+            try {
+                // ── Step 1: Prove ───────────────────────────────
+                setStep('step-prove', 'active');
+                stopTimer = startTimer(document.getElementById('timer-prove'));
+                statusEl.textContent = 'Running halo2 prover...';
+
+                const proofB64 = generateProof(word, FORBIDDEN);
+
+                stopTimer();
+                setStep('step-prove', 'done');
+
+                // Show proof data
+                const msg = encodeProofMsg(CONTRACT_CODE_ID, FORBIDDEN, proofB64);
+                const proofLen = Math.ceil(proofB64.length * 3 / 4);
+                const truncated = proofB64.length > 64
+                    ? proofB64.slice(0, 48) + '...' + proofB64.slice(-16)
+                    : proofB64;
+                document.getElementById('proof-b64').textContent = truncated + '  (' + proofLen + ' bytes)';
+                document.getElementById('proof-msg').textContent = JSON.stringify(JSON.parse(msg), null, 2);
+                document.getElementById('proof-display').style.display = 'block';
+
+                // ── Step 2: Broadcast ───────────────────────────
+                setStep('step-broadcast', 'active');
+                stopTimer = startTimer(document.getElementById('timer-broadcast'));
+                statusEl.textContent = 'Signing & broadcasting...';
+
+                const contractAddr = chainConfig?.contracts?.zkWasmvmTest;
+                if (!contractAddr) throw new Error('zkWasmvmTest contract address not configured');
+
+                const chainId = chainConfig.chainId;
+                const offlineSigner = window.keplr.getOfflineSigner(chainId);
+
+                const { SigningCosmWasmClient } = await import('https://esm.sh/@cosmjs/cosmwasm-stargate@0.32.4');
+                const client = await SigningCosmWasmClient.connectWithSigner(
+                    chainConfig.rpc,
+                    offlineSigner,
+                    { gasPrice: { denom: 'uthiol', amount: '0.025' } }
+                );
+
+                const execMsg = JSON.parse(msg);
+                const result = await client.execute(
+                    walletAddress,
+                    contractAddr,
+                    execMsg,
+                    'auto',
+                    'no-rick proof'
+                );
+
+                stopTimer();
+                setStep('step-broadcast', 'done');
+
+                // ── Step 3: Confirm ─────────────────────────────
+                setStep('step-confirm', 'done');
+                statusEl.style.display = 'none';
+
+                const verdictEl = document.getElementById('verdict-area');
+                verdictEl.style.display = 'block';
+
+                if (result.code === 0 || !result.code) {
+                    const isRick = word.toLowerCase() === FORBIDDEN;
+                    verdictEl.innerHTML = `
+                        <div class="verdict ${isRick ? 'rick' : 'randy'}">${isRick ? 'RICK' : 'RANDY'}</div>
+                        <div class="tx-hash">tx: ${result.transactionHash}</div>
+                    `;
+
+                    // Refresh balances and highlight the minted token
+                    const prevRandy = randyBal;
+                    const prevRick = rickBal;
+                    await fetchRewardBalances();
+                    highlightReward(isRick, prevRandy, prevRick);
+                } else {
+                    verdictEl.innerHTML = `
+                        <div class="verdict rick">VERIFICATION FAILED</div>
+                        <div class="error-msg">Code ${result.code}: ${result.rawLog || 'Unknown error'}</div>
+                    `;
+                }
+            } catch (e) {
+                if (stopTimer) stopTimer();
+                // Mark whichever step is active as error
+                ['step-prove', 'step-broadcast', 'step-confirm'].forEach(id => {
+                    if (document.getElementById(id).classList.contains('active')) {
+                        setStep(id, 'error');
+                    }
+                });
+                statusEl.innerHTML = '<span class="error-msg">' + e.message + '</span>';
+            }
+
+            btn.disabled = false;
+            btn.textContent = 'Generate Proof & Submit';
+            updateProveButton();
+        });
+
+        // ── Start ────────────────────────────────────────────────────────
+        init();
+    </script>
+
+<div id="fab-wallet-stack" style="position:fixed;bottom:6rem;right:1.5rem;z-index:9998;display:flex;flex-direction:column;gap:0.5rem;align-items:center;">
+<button id="faucet-btn" style="display:none;width:40px;height:40px;border-radius:50%;border:none;background:#ffb86c;color:#000;cursor:pointer;font-size:14px;font-weight:500;box-shadow:0 4px 15px rgba(255,184,108,0.3);align-items:center;justify-content:center;" aria-label="Faucet" title="Faucet">F</button>
+<button id="wallet-btn" style="width:40px;height:40px;border-radius:50%;border:none;background:rgba(152,232,193,0.15);border:1px solid rgba(152,232,193,0.4);color:#98e8c1;cursor:pointer;font-size:16px;font-weight:400;box-shadow:0 4px 15px rgba(152,232,193,0.15);display:flex;align-items:center;justify-content:center;" aria-label="Connect Wallet" title="Connect Wallet">W</button>
+</div>
+<div id="fab-nav" style="position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;">
+<div id="fab-menu" style="position:absolute;bottom:58px;right:0;display:none;flex-direction:column;gap:2px;padding:0.5rem;background:rgba(10,10,15,0.95);border:1px solid rgba(152,232,193,0.2);border-radius:12px;min-width:150px;box-shadow:0 8px 40px rgba(0,0,0,0.7);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);">
+<div style="font-size:0.55rem;text-transform:uppercase;letter-spacing:0.1em;color:rgba(152,232,193,0.4);padding:0.25rem 0.75rem 0.1rem;font-family:Satoshi,sans-serif;">Navigate</div>
+<a href="/svg" style="display:block;padding:0.5rem 0.75rem;border-radius:6px;color:#d2d3d8;font-family:Satoshi,sans-serif;font-size:0.8rem;font-weight:400;text-decoration:none;">SVG</a>
+<a href="/tabs" style="display:block;padding:0.5rem 0.75rem;border-radius:6px;color:#d2d3d8;font-family:Satoshi,sans-serif;font-size:0.8rem;font-weight:400;text-decoration:none;">Names</a>
+<!-- <a href="/ibc" style="display:block;padding:0.5rem 0.75rem;border-radius:6px;color:#d2d3d8;font-family:Satoshi,sans-serif;font-size:0.8rem;font-weight:400;text-decoration:none;">IBC</a>
+<a href="/brain" style="display:block;padding:0.5rem 0.75rem;border-radius:6px;color:#d2d3d8;font-family:Satoshi,sans-serif;font-size:0.8rem;font-weight:400;text-decoration:none;">Brain</a> -->
+<div style="height:1px;background:rgba(152,232,193,0.1);margin:0.15rem 0.5rem;"></div>
+<a href="/no-rick" style="display:block;padding:0.5rem 0.75rem;border-radius:6px;color:#98e8c1;background:rgba(152,232,193,0.08);font-family:Satoshi,sans-serif;font-size:0.8rem;font-weight:400;text-decoration:none;">No Rick</a>
+<!-- <a href="/passkey" style="display:block;padding:0.5rem 0.75rem;border-radius:6px;color:#d2d3d8;font-family:Satoshi,sans-serif;font-size:0.8rem;font-weight:400;text-decoration:none;">Passkey</a>
+<a href="/tx" style="display:block;padding:0.5rem 0.75rem;border-radius:6px;color:#d2d3d8;font-family:Satoshi,sans-serif;font-size:0.8rem;font-weight:400;text-decoration:none;">Tx Builder</a>
+<a href="/admin" style="display:block;padding:0.5rem 0.75rem;border-radius:6px;color:#d2d3d8;font-family:Satoshi,sans-serif;font-size:0.8rem;font-weight:400;text-decoration:none;">Admin</a> -->
+</div>
+<button onclick="var m=document.getElementById('fab-menu');var o=m.style.display==='flex';m.style.display=o?'none':'flex';" style="width:48px;height:48px;border-radius:50%;border:none;background:#98e8c1;color:#000;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:300;box-shadow:0 4px 20px rgba(152,232,193,0.3);" aria-label="Menu">+</button>
+</div>
+<script>document.addEventListener("click",function(e){var f=document.getElementById("fab-nav");if(f&&!f.contains(e.target))document.getElementById("fab-menu").style.display="none"});</script>
+</body>
+</html>

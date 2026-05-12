@@ -29,27 +29,25 @@ MAINNET_VERSION = "5.0.2"
 TESTNET_VERSION = "5.0.2"
 
 # GitHub Repository
-GITHUB_REPO_URL = "https://github.com/terpnetwork/terp-core"
-GITHUB_RELEASES_URL = f"{GITHUB_REPO_URL}/releases/download"
-NETWORKS_REPO_URL = "https://raw.githubusercontent.com/terpnetwork/networks/refs/heads/main"
+GITHUBURL = "https://github.com/terpnetwork/terp-core"
+GITHUB_RELEASES_URL = f"{GITHUBURL}/releases/download"
+NETWORKSURL = "https://raw.githubusercontent.com/terpnetwork/networks/refs/heads/main"
 
 # Binary Download URLs
 MAINNET_BINARY_BASE_URL = f"{GITHUB_RELEASES_URL}/v{MAINNET_VERSION}"
 TESTNET_BINARY_BASE_URL = f"{GITHUB_RELEASES_URL}/v{TESTNET_VERSION}"
 
 # Genesis Files
-MAINNET_GENESIS_URL = f"{NETWORKS_REPO_URL}/mainnet/morocco-1/genesis.json"
-TESTNET_GENESIS_URL = f"{NETWORKS_REPO_URL}/testnet/90u-4/genesis.json"
+MAINNET_GENESIS_URL = f"{NETWORKSURL}/mainnet/morocco-1/genesis.json"
+TESTNET_GENESIS_URL = f"{NETWORKSURL}/testnet/90u-4/genesis.json"
 
 # RPC Endpoints
-MAINNET_RPC_ENDPOINT = "https://rpc-mainnet.terp.network:443"
+MAINNET_RPC_ENDPOINT = "https://rpc.terp.network:443"
 TESTNET_RPC_ENDPOINT = "https://rpc-testnet.terp.network:443"
 
 # Peer Nodes
 MAINNET_PEERS = []  # Uses addrbook instead
-TESTNET_PEERS = [
-    "9e194721d68dd28d3c4b625c17b2cb287ef30327@peer-testnet.terp.network:26656",
-]
+TESTNET_PEERS = ["9e194721d68dd28d3c4b625c17b2cb287ef30327@peer-testnet.terp.network:26656"]
 
 # Addrbook URLs
 MAINNET_ADDRBOOK_URL = "https://snapshot-mainnet.terp.network/addrbook.json"
@@ -218,15 +216,25 @@ MAINNET = Network(
 )
 
 COSMOVISOR_URL = {
-    # "darwin": {
-    #     "amd64": f"{COSMOVISOR_BASE_URL}/cosmovisor-{COSMOVISOR_VERSION}-darwin-amd64",
-    #     "arm64": f"{COSMOVISOR_BASE_URL}/cosmovisor-{COSMOVISOR_VERSION}-darwin-arm64"
-    # },
+    "darwin": {
+        "amd64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/cosmovisor/cosmovisor-v1.2.0-darwin-amd64",
+        "arm64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/cosmovisor/cosmovisor-v1.2.0-darwin-arm64"
+    },
     "linux": {
-        "amd64": f"{COSMOVISOR_BASE_URL}/cosmovisor-{COSMOVISOR_VERSION}-linux-amd64",
-        "arm64": f"{COSMOVISOR_BASE_URL}/cosmovisor-{COSMOVISOR_VERSION}-linux-arm64"
+        "amd64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/cosmovisor/cosmovisor-v1.2.0-linux-amd64",
+        "arm64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/cosmovisor/cosmovisor-v1.2.0-linux-arm64"
     }
 }
+# COSMOVISOR_URL = {
+#     # "darwin": {
+#     #     "amd64": f"{COSMOVISOR_BASE_URL}/cosmovisor-{COSMOVISOR_VERSION}-darwin-amd64",
+#     #     "arm64": f"{COSMOVISOR_BASE_URL}/cosmovisor-{COSMOVISOR_VERSION}-darwin-arm64"
+#     # },
+#     "linux": {
+#         "amd64": f"{COSMOVISOR_BASE_URL}/cosmovisor-{COSMOVISOR_VERSION}-linux-amd64",
+#         "arm64": f"{COSMOVISOR_BASE_URL}/cosmovisor-{COSMOVISOR_VERSION}-linux-arm64"
+#     }
+# }
 # Terminal utils
 
 class bcolors:

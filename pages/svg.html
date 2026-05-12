@@ -1,0 +1,3036 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="description" content="Browse and mint generative on-chain SVG art on Terp Network. Fully client-side rendered, parameterized by on-chain data, unique to every token.">
+    <title>SVG | Terp Network — Generative On-Chain Art</title>
+
+    <meta property="og:title" content="SVG | Terp Network — Generative On-Chain Art">
+    <meta property="og:description" content="Fully client-side rendered generative SVGs, parameterized by on-chain token data.">
+    <meta property="og:type" content="website">
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:title" content="SVG | Terp Network — Generative On-Chain Art">
+    <meta name="twitter:creator" content="@terpculture">
+
+    <link rel="icon" type="image/x-icon" href="/public/favicon/terp-32x32.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/public/favicon/terp-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/public/favicon/terp-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/public/favicon/terp-apple-touch.png">
+
+    <link rel="preconnect" href="https://fonts.cdnfonts.com/css/satoshi">
+    <link href="https://fonts.cdnfonts.com/css/satoshi" rel="stylesheet">
+    <link rel="stylesheet" href="/public/global.css">
+
+    <style>
+        .btn-collection {
+            background: rgba(189, 147, 249, 0.1);
+            border: 1px solid rgba(189, 147, 249, 0.3);
+            color: #bd93f9; padding: 0.5rem 1rem;
+            font-family: 'Satoshi', sans-serif; font-size: 0.8rem;
+            cursor: pointer; border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+        .btn-collection:hover {
+            background: rgba(189, 147, 249, 0.2);
+            border-color: rgba(189, 147, 249, 0.5);
+        }
+
+        /* Main content */
+        .main {
+            position: relative; z-index: 1;
+            max-width: 1100px; width: 100%;
+            margin: 0 auto;
+            padding: 6rem 1.5rem 3rem;
+            min-height: 100vh;
+            display: flex; flex-direction: column;
+            align-items: center;
+        }
+
+        .page-title {
+            font-size: 2.2rem; font-weight: 500;
+            color: #cfffcf;
+            text-shadow: 0 0 30px rgba(183, 255, 183, 0.07);
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            font-size: 0.85rem; color: #ffffda;
+            text-shadow: 0 0 3px rgba(71, 50, 102, 0.9);
+            text-transform: uppercase; letter-spacing: 0.12em;
+            text-align: center; margin-bottom: 2.5rem;
+        }
+
+        /* Loading */
+        .loading {
+            display: flex; flex-direction: column;
+            align-items: center; gap: 1rem;
+            padding: 4rem 0; color: #d2d3d8;
+        }
+
+        .spinner {
+            width: 36px; height: 36px;
+            border: 2px solid rgba(152, 232, 193, 0.2);
+            border-top-color: #98e8c1;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Demo notice */
+        .demo-notice {
+            margin-top: 1rem; padding: 0.6rem 1.2rem;
+            background: rgba(189, 147, 249, 0.08);
+            border: 1px solid rgba(189, 147, 249, 0.2);
+            border-radius: 4px; font-size: 0.75rem;
+            color: rgba(189, 147, 249, 0.8);
+            text-align: center;
+        }
+
+        /* ─── Collection Grid (list view) ─── */
+        .collection-grid {
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.2rem;
+        }
+
+        .collection-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(152, 232, 193, 0.1);
+            border-radius: 10px; overflow: hidden;
+            transition: all 0.2s ease;
+            display: flex; flex-direction: column;
+        }
+        .collection-card:hover {
+            border-color: rgba(152, 232, 193, 0.3);
+            box-shadow: 0 0 25px rgba(152, 232, 193, 0.06);
+            transform: translateY(-2px);
+        }
+
+        .col-card-preview {
+            aspect-ratio: 1; overflow: hidden;
+            background: #050508;
+            flex-shrink: 0;
+        }
+        .col-card-preview svg { width: 100%; height: 100%; display: block; }
+
+        .col-card-body {
+            padding: 1rem;
+            display: flex; flex-direction: column;
+            gap: 0.5rem; flex: 1;
+        }
+
+        .col-card-name {
+            font-size: 1rem; font-weight: 500; color: #cfffcf;
+        }
+
+        .col-card-symbol {
+            font-size: 0.65rem;
+            color: rgba(207, 255, 207, 0.5);
+            text-transform: uppercase; letter-spacing: 0.1em;
+        }
+
+        .col-card-meta {
+            display: flex; gap: 1rem; flex-wrap: wrap;
+            margin-top: auto; padding-top: 0.5rem;
+        }
+
+        .col-card-stat {
+            display: flex; flex-direction: column; gap: 0.1rem;
+        }
+        .col-stat-label {
+            font-size: 0.6rem; color: rgba(207, 255, 207, 0.4);
+            text-transform: uppercase; letter-spacing: 0.08em;
+        }
+        .col-stat-value {
+            font-size: 0.85rem; color: #98e8c1; font-weight: 500;
+        }
+
+        .col-status-badge {
+            font-size: 0.65rem; padding: 0.2rem 0.5rem;
+            border-radius: 3px; width: fit-content;
+        }
+        .col-status-badge.live {
+            background: rgba(152, 232, 193, 0.1);
+            border: 1px solid rgba(152, 232, 193, 0.25);
+            color: #98e8c1;
+        }
+        .col-status-badge.ended {
+            background: rgba(254, 125, 125, 0.1);
+            border: 1px solid rgba(254, 125, 125, 0.25);
+            color: #fe7d7d;
+        }
+        .col-status-badge.upcoming {
+            background: rgba(189, 147, 249, 0.1);
+            border: 1px solid rgba(189, 147, 249, 0.25);
+            color: #bd93f9;
+        }
+
+        .btn-browse {
+            margin-top: 0.75rem;
+            background: rgba(152, 232, 193, 0.08);
+            border: 1px solid rgba(152, 232, 193, 0.25);
+            color: #98e8c1; padding: 0.55rem 1rem;
+            font-family: 'Satoshi', sans-serif; font-size: 0.8rem;
+            cursor: pointer; border-radius: 5px;
+            transition: all 0.2s ease; text-align: center;
+            font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em;
+        }
+        .btn-browse:hover {
+            background: rgba(152, 232, 193, 0.16);
+            border-color: rgba(152, 232, 193, 0.45);
+        }
+
+        /* ─── Collection Detail (collection view) ─── */
+        .btn-back {
+            display: flex; align-items: center; gap: 0.4rem;
+            background: rgba(152, 232, 193, 0.06);
+            border: 1px solid rgba(152, 232, 193, 0.15);
+            color: #98e8c1; padding: 0.45rem 0.9rem;
+            font-family: 'Satoshi', sans-serif; font-size: 0.8rem;
+            cursor: pointer; border-radius: 4px;
+            transition: all 0.2s ease;
+            align-self: flex-start; margin-bottom: 1.5rem;
+        }
+        .btn-back:hover {
+            background: rgba(152, 232, 193, 0.12);
+            border-color: rgba(152, 232, 193, 0.3);
+        }
+
+        .col-detail-header {
+            width: 100%;
+            display: flex; gap: 2rem; align-items: flex-start;
+            margin-bottom: 1.5rem;
+        }
+
+        .col-detail-preview {
+            width: 300px; height: 300px; flex-shrink: 0;
+            border-radius: 10px; overflow: hidden;
+            background: #050508;
+            border: 1px solid rgba(152, 232, 193, 0.12);
+        }
+        .col-detail-preview svg { width: 100%; height: 100%; display: block; }
+
+        .col-detail-info {
+            flex: 1; display: flex; flex-direction: column;
+            gap: 0.6rem; min-width: 0;
+        }
+
+        .col-detail-name {
+            font-size: 1.8rem; font-weight: 500; color: #cfffcf;
+        }
+
+        .col-detail-desc {
+            font-size: 0.9rem; line-height: 1.6; color: #d2d3d8;
+        }
+
+        .col-detail-stats {
+            display: flex; gap: 1.5rem; flex-wrap: wrap;
+            margin-top: 0.25rem;
+        }
+
+        .col-detail-stat {
+            display: flex; flex-direction: column; gap: 0.15rem;
+        }
+        .detail-stat-label {
+            font-size: 0.6rem; color: rgba(207, 255, 207, 0.5);
+            text-transform: uppercase; letter-spacing: 0.1em;
+        }
+        .detail-stat-value {
+            font-size: 1rem; color: #98e8c1; font-weight: 500;
+        }
+
+        /* ─── Price Tiers ─── */
+        .price-tiers-wrap { margin-top: 0.75rem; }
+        .price-tiers-label {
+            font-size: 0.6rem; color: rgba(207,255,207,0.45);
+            text-transform: uppercase; letter-spacing: 0.1em;
+            margin-bottom: 0.35rem;
+        }
+        .price-tiers { display: flex; flex-direction: column; gap: 0.3rem; }
+        .price-tier {
+            display: flex; align-items: center; gap: 0.55rem;
+            padding: 0.28rem 0.6rem; border-radius: 5px;
+            border: 1px solid transparent; font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+        .price-tier.ended {
+            opacity: 0.3; filter: blur(0.3px);
+            color: rgba(207,255,207,0.4);
+        }
+        .price-tier.current {
+            background: rgba(152,232,193,0.07);
+            border-color: rgba(152,232,193,0.28);
+            color: #98e8c1;
+        }
+        .price-tier.future { color: rgba(207,255,207,0.55); }
+        .price-tier-dot {
+            width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0;
+        }
+        .price-tier.ended   .price-tier-dot { background: rgba(152,232,193,0.3); }
+        .price-tier.current .price-tier-dot { background: #98e8c1; box-shadow: 0 0 5px rgba(152,232,193,0.7); }
+        .price-tier.future  .price-tier-dot { background: rgba(152,232,193,0.35); }
+        .price-tier-range { flex: 1; font-size: 0.75rem; opacity: 0.8; }
+        .price-tier-price { font-weight: 600; }
+        .price-tier-current-tag {
+            font-size: 0.6rem; opacity: 0.65;
+            letter-spacing: 0.04em; text-transform: uppercase;
+        }
+
+        /* ─── Mint Panel ─── */
+        .mint-panel {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(152, 232, 193, 0.12);
+            border-radius: 8px; padding: 1.2rem 1.5rem;
+            display: flex; align-items: center;
+            gap: 1.5rem; flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        .mint-panel-price {
+            display: flex; flex-direction: column; gap: 0.1rem;
+        }
+        .mint-panel-price-label {
+            font-size: 0.6rem; color: rgba(207, 255, 207, 0.5);
+            text-transform: uppercase; letter-spacing: 0.1em;
+        }
+        .mint-panel-price-value {
+            font-size: 1.1rem; color: #98e8c1; font-weight: 500;
+        }
+
+        .qty-row {
+            display: flex; align-items: center; gap: 0.6rem;
+        }
+        .qty-btn {
+            width: 32px; height: 32px;
+            background: rgba(152, 232, 193, 0.08);
+            border: 1px solid rgba(152, 232, 193, 0.25);
+            color: #98e8c1; font-size: 1.1rem;
+            cursor: pointer; border-radius: 5px;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s ease; flex-shrink: 0;
+            font-family: 'Satoshi', sans-serif;
+        }
+        .qty-btn:hover {
+            background: rgba(152, 232, 193, 0.16);
+            border-color: rgba(152, 232, 193, 0.4);
+        }
+        .qty-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        .qty-display {
+            font-size: 1.2rem; font-weight: 700;
+            color: #f8f8f2;
+            min-width: 1.8rem; text-align: center;
+        }
+
+        .mint-total {
+            display: flex; flex-direction: column; gap: 0.1rem;
+        }
+        .mint-total-label {
+            font-size: 0.6rem; color: rgba(207, 255, 207, 0.5);
+            text-transform: uppercase; letter-spacing: 0.1em;
+        }
+        .mint-total-value {
+            font-size: 1rem; color: #cfffcf; font-weight: 500;
+        }
+
+        .btn-mint {
+            background: linear-gradient(135deg, rgba(152, 232, 193, 0.15), rgba(152, 232, 193, 0.08));
+            border: 1px solid rgba(152, 232, 193, 0.4);
+            color: #cfffcf; padding: 0.75rem 1.8rem;
+            font-family: 'Satoshi', sans-serif;
+            font-size: 0.95rem; font-weight: 500;
+            cursor: pointer; border-radius: 6px;
+            transition: all 0.3s ease;
+            text-transform: uppercase; letter-spacing: 0.1em;
+            margin-left: auto;
+        }
+        .btn-mint:hover {
+            background: linear-gradient(135deg, rgba(152, 232, 193, 0.25), rgba(152, 232, 193, 0.15));
+            border-color: rgba(152, 232, 193, 0.6);
+            box-shadow: 0 0 25px rgba(152, 232, 193, 0.15);
+            transform: translateY(-1px);
+        }
+        .btn-mint:active { transform: translateY(0); }
+        .btn-mint:disabled {
+            opacity: 0.4; cursor: not-allowed;
+            transform: none; box-shadow: none;
+        }
+
+        /* ─── Payment Section (shitstrap options inside mint-panel) ─── */
+        .payment-section {
+            width: 100%; flex-basis: 100%;
+            border-top: 1px solid rgba(152, 232, 193, 0.08);
+            padding-top: 0.9rem; margin-top: 0.2rem;
+        }
+        .payment-section-label {
+            font-size: 0.6rem; color: rgba(207, 255, 207, 0.45);
+            text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 0.5rem;
+        }
+        .payment-row {
+            display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: flex-start;
+        }
+        .payment-chip {
+            background: rgba(152, 232, 193, 0.05);
+            border: 1px solid rgba(152, 232, 193, 0.18);
+            border-radius: 6px; padding: 0.35rem 0.6rem;
+            display: flex; flex-direction: column; gap: 0.1rem;
+            font-size: 0.78rem;
+        }
+        .payment-chip.shitstrap-chip { border-color: rgba(189, 147, 249, 0.3); }
+        .payment-chip.insufficient { border-color: rgba(255, 85, 85, 0.3); }
+        .chip-label { font-size: 0.6rem; color: rgba(207, 255, 207, 0.4); text-transform: uppercase; letter-spacing: 0.08em; }
+        .chip-denom { font-size: 0.72rem; color: rgba(207, 255, 207, 0.65); }
+        .chip-amount { color: #98e8c1; font-weight: 500; }
+        .chip-insufficient { color: rgba(255, 120, 120, 0.8); font-size: 0.78rem; }
+
+        /* ─── Confirm Panel ─── */
+        .confirm-panel {
+            width: 100%; flex-basis: 100%;
+            background: rgba(152, 232, 193, 0.03);
+            border: 1px solid rgba(152, 232, 193, 0.2);
+            border-radius: 7px; padding: 1rem 1.2rem;
+            margin-top: 0.6rem;
+        }
+        .confirm-title {
+            font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.12em;
+            color: rgba(207, 255, 207, 0.45); margin-bottom: 0.75rem;
+        }
+        .confirm-step {
+            display: flex; align-items: center; gap: 0.6rem;
+            padding: 0.35rem 0;
+            border-bottom: 1px solid rgba(152, 232, 193, 0.06);
+            font-size: 0.85rem;
+        }
+        .confirm-step:last-child { border-bottom: none; }
+        .confirm-step-icon { color: rgba(207, 255, 207, 0.35); font-size: 0.9rem; width: 1.2rem; text-align: center; }
+        .confirm-step-desc { color: #d2d3d8; flex: 1; }
+        .confirm-step-amount { color: #98e8c1; font-weight: 500; white-space: nowrap; }
+        .confirm-actions {
+            display: flex; gap: 0.6rem; margin-top: 0.85rem; justify-content: flex-end;
+        }
+        .btn-cancel-confirm {
+            background: transparent;
+            border: 1px solid rgba(152, 232, 193, 0.18);
+            color: rgba(207, 255, 207, 0.55);
+            padding: 0.45rem 1rem; border-radius: 5px;
+            cursor: pointer; font-size: 0.82rem;
+            font-family: 'Satoshi', sans-serif;
+            transition: border-color 0.2s;
+        }
+        .btn-cancel-confirm:hover { border-color: rgba(152, 232, 193, 0.35); }
+        .btn-confirm-mint {
+            background: linear-gradient(135deg, rgba(152, 232, 193, 0.22), rgba(152, 232, 193, 0.12));
+            border: 1px solid rgba(152, 232, 193, 0.5);
+            color: #cfffcf; padding: 0.45rem 1.4rem;
+            border-radius: 5px; cursor: pointer;
+            font-size: 0.82rem; font-weight: 500;
+            font-family: 'Satoshi', sans-serif;
+            text-transform: uppercase; letter-spacing: 0.08em;
+            transition: all 0.2s;
+        }
+        .btn-confirm-mint:hover { box-shadow: 0 0 14px rgba(152, 232, 193, 0.15); }
+        .btn-confirm-mint:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+
+        /* ─── Whitelist badge ─── */
+        #whitelist-badge { margin-bottom: 0.5rem; }
+        .wl-badge {
+            display: inline-flex; align-items: center; gap: 0.3rem;
+            padding: 0.2rem 0.7rem; border-radius: 999px;
+            font-size: 0.72rem; font-weight: 600; letter-spacing: 0.04em;
+        }
+        .wl-eligible   { background: rgba(152,232,193,0.12); color: rgb(152,232,193); border: 1px solid rgba(152,232,193,0.3); }
+        .wl-ineligible { background: rgba(255,184,108,0.10); color: rgb(255,184,108); border: 1px solid rgba(255,184,108,0.25); }
+
+        /* ─── Filter Tabs ─── */
+        .filter-row {
+            width: 100%;
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .filter-tabs {
+            display: flex; gap: 0.4rem;
+        }
+
+        .filter-btn {
+            background: rgba(152, 232, 193, 0.04);
+            border: 1px solid rgba(152, 232, 193, 0.12);
+            color: #d2d3d8; padding: 0.4rem 0.9rem;
+            font-family: 'Satoshi', sans-serif; font-size: 0.8rem;
+            cursor: pointer; border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+        .filter-btn:hover {
+            border-color: rgba(152, 232, 193, 0.28);
+            color: #f8f8f2;
+        }
+        .filter-btn.active {
+            background: rgba(152, 232, 193, 0.12);
+            border-color: rgba(152, 232, 193, 0.4);
+            color: #98e8c1;
+        }
+
+        .token-count-label {
+            font-size: 0.75rem; color: rgba(207, 255, 207, 0.45);
+        }
+
+        /* ─── Token Grid ─── */
+        .token-grid {
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1rem;
+        }
+
+        .token-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(152, 232, 193, 0.1);
+            border-radius: 8px; overflow: hidden;
+            transition: all 0.2s ease;
+        }
+        .token-card:hover {
+            border-color: rgba(152, 232, 193, 0.3);
+            box-shadow: 0 0 20px rgba(152, 232, 193, 0.05);
+        }
+        .token-card.owned {
+            border-color: rgba(152, 232, 193, 0.25);
+        }
+        .token-card.owned::after {
+            content: "Owned";
+            position: absolute;
+            top: 0.4rem; right: 0.4rem;
+            font-size: 0.6rem;
+            background: rgba(152, 232, 193, 0.18);
+            border: 1px solid rgba(152, 232, 193, 0.35);
+            color: #98e8c1; padding: 0.1rem 0.35rem;
+            border-radius: 2px; text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .token-card { position: relative; }
+
+        .token-svg-wrap {
+            aspect-ratio: 1; overflow: hidden;
+            background: #050508;
+        }
+        .token-svg-wrap svg { width: 100%; height: 100%; display: block; }
+
+        .token-info {
+            padding: 0.6rem 0.75rem;
+            display: flex; flex-direction: column; gap: 0.15rem;
+        }
+
+        .token-collection-name {
+            font-size: 0.6rem; color: rgba(207, 255, 207, 0.45);
+            text-transform: uppercase; letter-spacing: 0.08em;
+        }
+
+        .token-id {
+            font-size: 0.9rem; color: #f8f8f2; font-weight: 500;
+        }
+
+        /* Load more */
+        .load-more-row {
+            width: 100%; display: flex;
+            justify-content: center; padding: 1.5rem 0;
+        }
+
+        .btn-load-more {
+            background: rgba(152, 232, 193, 0.06);
+            border: 1px solid rgba(152, 232, 193, 0.2);
+            color: #98e8c1; padding: 0.6rem 1.5rem;
+            font-family: 'Satoshi', sans-serif; font-size: 0.85rem;
+            cursor: pointer; border-radius: 5px;
+            transition: all 0.2s ease;
+        }
+        .btn-load-more:hover {
+            background: rgba(152, 232, 193, 0.12);
+            border-color: rgba(152, 232, 193, 0.35);
+        }
+
+        /* Empty state */
+        .empty-state {
+            width: 100%; text-align: center;
+            padding: 3rem 1rem; color: #d2d3d8;
+        }
+        .empty-state p { margin-bottom: 0.5rem; }
+
+        /* ─── My Collection Modal ─── */
+        .modal {
+            position: fixed; inset: 0; z-index: 200;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .modal-backdrop {
+            position: absolute; inset: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .modal-content {
+            position: relative; z-index: 1;
+            background: rgba(10, 10, 15, 0.95);
+            border: 1px solid rgba(152, 232, 193, 0.15);
+            border-radius: 12px;
+            width: 90vw; max-width: 900px;
+            max-height: 85vh;
+            display: flex; flex-direction: column;
+            box-shadow: 0 0 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 1.2rem 1.5rem;
+            border-bottom: 1px solid rgba(152, 232, 193, 0.1);
+        }
+
+        .modal-header h2 {
+            font-size: 1.2rem; font-weight: 500; color: #cfffcf;
+        }
+
+        .modal-close {
+            background: none; border: none;
+            color: #d2d3d8; font-size: 1.5rem;
+            cursor: pointer; padding: 0.25rem;
+            transition: color 0.2s ease;
+        }
+        .modal-close:hover { color: #f8f8f2; }
+
+        .modal-body {
+            padding: 1.5rem; overflow-y: auto; flex: 1;
+        }
+
+        .modal-empty {
+            text-align: center; padding: 3rem 1rem; color: #d2d3d8;
+        }
+        .modal-empty p { margin-bottom: 0.5rem; }
+
+        /* NFT grid in modal */
+        .nft-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.2rem;
+        }
+
+        .nft-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(152, 232, 193, 0.1);
+            border-radius: 8px; overflow: hidden;
+            transition: all 0.2s ease;
+        }
+        .nft-card:hover {
+            border-color: rgba(152, 232, 193, 0.3);
+            box-shadow: 0 0 20px rgba(152, 232, 193, 0.05);
+        }
+
+        .nft-svg-wrap {
+            aspect-ratio: 1; overflow: hidden;
+            background: #050508;
+        }
+        .nft-svg-wrap svg { width: 100%; height: 100%; display: block; }
+
+        .nft-info {
+            padding: 0.75rem; display: flex;
+            flex-direction: column; gap: 0.25rem;
+        }
+
+        .nft-collection-name {
+            font-size: 0.65rem; color: rgba(207, 255, 207, 0.5);
+            text-transform: uppercase; letter-spacing: 0.08em;
+        }
+
+        .nft-token-id {
+            font-size: 0.95rem; color: #f8f8f2; font-weight: 500;
+        }
+
+        /* ─── Toasts ─── */
+        .toast-container {
+            position: fixed; bottom: 1.5rem; right: 1.5rem;
+            z-index: 300; display: flex; flex-direction: column;
+            gap: 0.5rem; max-width: 360px;
+        }
+
+        .toast {
+            padding: 0.8rem 1.2rem; border-radius: 6px;
+            font-size: 0.8rem; line-height: 1.4;
+            backdrop-filter: blur(12px);
+            animation: toast-in 0.3s ease forwards;
+            border: 1px solid;
+        }
+
+        .toast.success {
+            background: rgba(152, 232, 193, 0.1);
+            border-color: rgba(152, 232, 193, 0.3);
+            color: #98e8c1;
+        }
+        .toast.error {
+            background: rgba(254, 125, 125, 0.1);
+            border-color: rgba(254, 125, 125, 0.3);
+            color: #fe7d7d;
+        }
+        .toast.info {
+            background: rgba(189, 147, 249, 0.1);
+            border-color: rgba(189, 147, 249, 0.3);
+            color: #bd93f9;
+        }
+
+        .toast.removing { animation: toast-out 0.3s ease forwards; }
+
+        @keyframes toast-in {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes toast-out {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(20px); }
+        }
+
+        /* ─── Tx Result Modal ─── */
+        .tx-modal {
+            position: fixed; inset: 0; z-index: 250;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .tx-modal-backdrop {
+            position: absolute; inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .tx-modal-card {
+            position: relative; z-index: 1;
+            background: rgba(10, 10, 15, 0.95);
+            border: 1px solid rgba(152, 232, 193, 0.15);
+            border-radius: 12px;
+            width: 90vw; max-width: 480px;
+            padding: 2rem;
+            box-shadow: 0 0 60px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            animation: tx-modal-in 0.3s ease forwards;
+        }
+
+        @keyframes tx-modal-in {
+            from { opacity: 0; transform: scale(0.95) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .tx-modal-card.success { border-color: rgba(152, 232, 193, 0.3); }
+        .tx-modal-card.error { border-color: rgba(254, 125, 125, 0.3); }
+
+        .tx-modal-icon { font-size: 3rem; margin-bottom: 0.75rem; line-height: 1; }
+
+        .tx-modal-title { font-size: 1.3rem; font-weight: 500; margin-bottom: 0.5rem; }
+        .tx-modal-card.success .tx-modal-title { color: #98e8c1; }
+        .tx-modal-card.error .tx-modal-title { color: #fe7d7d; }
+
+        .tx-modal-message {
+            font-size: 0.85rem; color: #d2d3d8;
+            line-height: 1.5; margin-bottom: 1.2rem;
+        }
+
+        .tx-modal-hash-label {
+            font-size: 0.65rem; color: rgba(207, 255, 207, 0.5);
+            text-transform: uppercase; letter-spacing: 0.1em;
+            margin-bottom: 0.3rem;
+        }
+
+        .tx-modal-hash-box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(152, 232, 193, 0.1);
+            border-radius: 6px; padding: 0.6rem 0.8rem;
+            margin-bottom: 1rem;
+            display: flex; align-items: center;
+            gap: 0.5rem; justify-content: center;
+        }
+
+        .tx-modal-hash {
+            font-family: 'Courier New', monospace;
+            font-size: 0.7rem; color: #98e8c1;
+            word-break: break-all; text-align: left; flex: 1;
+        }
+
+        .tx-modal-copy {
+            background: none; border: none;
+            color: rgba(152, 232, 193, 0.6); cursor: pointer;
+            font-size: 0.75rem; padding: 0.2rem 0.4rem;
+            border-radius: 3px; transition: all 0.2s ease;
+            white-space: nowrap; flex-shrink: 0;
+        }
+        .tx-modal-copy:hover { color: #98e8c1; background: rgba(152, 232, 193, 0.1); }
+
+        .tx-modal-error-detail {
+            background: rgba(254, 125, 125, 0.06);
+            border: 1px solid rgba(254, 125, 125, 0.15);
+            border-radius: 6px; padding: 0.6rem 0.8rem;
+            margin-bottom: 1rem; text-align: left;
+        }
+
+        .tx-modal-error-label {
+            font-size: 0.65rem; color: rgba(254, 125, 125, 0.6);
+            text-transform: uppercase; letter-spacing: 0.1em;
+            margin-bottom: 0.3rem;
+        }
+
+        .tx-modal-error-text {
+            font-family: 'Courier New', monospace;
+            font-size: 0.7rem; color: #fe7d7d;
+            word-break: break-all; line-height: 1.4;
+            max-height: 120px; overflow-y: auto;
+        }
+
+        .tx-modal-actions {
+            display: flex; gap: 0.75rem;
+            justify-content: center; flex-wrap: wrap;
+        }
+
+        .tx-modal-btn {
+            padding: 0.6rem 1.2rem; border-radius: 6px;
+            font-family: 'Satoshi', sans-serif;
+            font-size: 0.85rem; cursor: pointer;
+            transition: all 0.2s ease; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 0.4rem;
+        }
+
+        .tx-modal-btn-primary {
+            background: rgba(152, 232, 193, 0.12);
+            border: 1px solid rgba(152, 232, 193, 0.35);
+            color: #98e8c1;
+        }
+        .tx-modal-btn-primary:hover {
+            background: rgba(152, 232, 193, 0.2);
+            border-color: rgba(152, 232, 193, 0.5);
+            color: #cfffcf; opacity: 1;
+        }
+
+        .tx-modal-btn-secondary {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #d2d3d8;
+        }
+        .tx-modal-btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: #f8f8f2; opacity: 1;
+        }
+
+        .tx-modal-btn-error {
+            background: rgba(254, 125, 125, 0.1);
+            border: 1px solid rgba(254, 125, 125, 0.3);
+            color: #fe7d7d;
+        }
+        .tx-modal-btn-error:hover {
+            background: rgba(254, 125, 125, 0.18);
+            border-color: rgba(254, 125, 125, 0.45);
+            opacity: 1;
+        }
+
+        /* Confetti */
+        #confetti-canvas {
+            position: fixed; inset: 0;
+            z-index: 400; pointer-events: none;
+        }
+
+        /* ─── Responsive ─── */
+        @media (max-width: 900px) {
+            .collection-grid { grid-template-columns: repeat(2, 1fr); }
+            .col-detail-header { flex-direction: column; gap: 1.2rem; }
+            .col-detail-preview { width: 100%; height: 300px; }
+            .col-detail-preview svg { height: 100%; width: auto; margin: auto; }
+        }
+
+        @media (max-width: 768px) {
+            .page-title { font-size: 1.6rem; }
+            .page-subtitle { font-size: 0.7rem; }
+            .header { padding: 0.5rem 1rem; }
+            .header-nav { gap: 1rem; }
+            .nav-link { font-size: 0.75rem; }
+            .main { padding: 5rem 1rem 2rem; }
+            .mint-panel { flex-wrap: wrap; gap: 1rem; }
+            .btn-mint { margin-left: 0; width: 100%; }
+            .token-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+        }
+
+        @media (max-width: 600px) {
+            .collection-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 480px) {
+            .header-actions { gap: 0.4rem; }
+            .btn-wallet, .btn-collection { font-size: 0.7rem; padding: 0.4rem 0.6rem; }
+            .col-detail-name { font-size: 1.4rem; }
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="glow-canvas" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;pointer-events:none;"></canvas>
+
+        <!-- ── List View ── -->
+        <div id="view-list" style="width:100%;">
+
+        <!-- ── Loading Spinner ── -->
+        <div id="loading" style="display:flex;justify-content:center;align-items:center;padding:4rem 1rem;">
+            <div style="width:32px;height:32px;border:3px solid rgba(152,232,193,0.2);border-top-color:#98e8c1;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+            <span style="margin-left:1rem;color:#98e8c1;font-family:Satoshi,sans-serif;font-size:0.9rem;">Loading collections...</span>
+        </div>
+        <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
+        <!-- ── Demo Mode Notice ── -->
+        <div id="demo-notice" style="display:none;background:rgba(255,184,108,0.1);border:1px solid rgba(255,184,108,0.3);color:#ffb86c;padding:0.75rem 1rem;border-radius:8px;margin:1rem 0;font-family:Satoshi,sans-serif;font-size:0.85rem;">
+            Demo mode — on-chain data unavailable. Showing sample collections.
+        </div>
+
+        <!-- ── Collection Grid ── -->
+        <div id="collection-grid" style="display:none;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem;padding:1rem 0;"></div>
+
+        </div><!-- end view-list -->
+
+        <!-- ── Collection Detail View ── -->
+        <div id="view-collection" style="display:none; width:100%; flex-direction:column; align-items:flex-start;">
+            <button class="btn-back" onclick="showListView()">&#8592; Back to Collections</button>
+
+            <div class="col-detail-header" id="col-detail-header"></div>
+
+            <div class="mint-panel" id="mint-panel" style="display:none">
+                <div class="mint-panel-price">
+                    <span class="mint-panel-price-label">Price per Token</span>
+                    <span class="mint-panel-price-value" id="mint-price">--</span>
+                </div>
+                <div class="qty-row">
+                    <button class="qty-btn" id="qty-dec" onclick="changeQuantity(-1)">-</button>
+                    <span class="qty-display" id="qty-display">1</span>
+                    <button class="qty-btn" id="qty-inc" onclick="changeQuantity(1)">+</button>
+                </div>
+                <div class="mint-total">
+                    <span class="mint-total-label">Total</span>
+                    <span class="mint-total-value" id="mint-total">--</span>
+                </div>
+                <!-- Whitelist eligibility — shown when merkleServerUrl is configured -->
+                <div id="whitelist-badge" style="display:none"></div>
+                <button class="btn-mint" id="btn-mint" onclick="handleMint()">Review</button>
+                <!-- Payment options (shitstrap) — shown when wallet connected -->
+                <div class="payment-section" id="payment-section" style="display:none">
+                    <div class="payment-section-label">Payment</div>
+                    <div class="payment-row" id="payment-options"></div>
+                </div>
+                <!-- Two-step confirmation panel -->
+                <div class="confirm-panel" id="confirm-panel" style="display:none">
+                    <div class="confirm-title">Transaction Preview</div>
+                    <div id="confirm-steps"></div>
+                    <div class="confirm-actions">
+                        <button class="btn-cancel-confirm" onclick="cancelMintConfirm()">Cancel</button>
+                        <button class="btn-confirm-mint" id="btn-confirm-mint" onclick="executeMintTx()">Confirm Mint</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-row" id="filter-row" style="display:none">
+                <span class="token-count-label" id="token-count-label"></span>
+                <div class="filter-tabs">
+                    <button class="filter-btn active" id="filter-all" onclick="setTokenFilter('all')">All Tokens</button>
+                    <button class="filter-btn" id="filter-mine" onclick="setTokenFilter('mine')" style="display:none">
+                        My Tokens (<span id="my-token-count">0</span>)
+                    </button>
+                </div>
+            </div>
+
+            <div class="loading" id="loading-tokens" style="display:none">
+                <div class="spinner"></div>
+                <p>Loading tokens...</p>
+            </div>
+
+            <div class="token-grid" id="token-grid"></div>
+
+            <div class="load-more-row" id="load-more-row" style="display:none">
+                <button class="btn-load-more" onclick="loadMoreTokens()">Load More</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- My Collection Modal (cross-collection wallet view) -->
+    <div class="modal" id="modal-collection" style="display:none">
+        <div class="modal-backdrop" onclick="closeMyCollectionModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>My Collection</h2>
+                <button class="modal-close" onclick="closeMyCollectionModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-body"></div>
+        </div>
+    </div>
+
+    <div class="tx-modal" id="modal-tx" style="display:none">
+        <div class="tx-modal-backdrop" onclick="closeTxModal()"></div>
+        <div class="tx-modal-card" id="tx-modal-card"></div>
+    </div>
+
+    <div class="toast-container" id="toasts"></div>
+    <canvas id="confetti-canvas" style="display:none"></canvas>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "interchainjs/cosmwasm/wasm/v1/tx": "https://esm.sh/interchainjs@1.11.1/cosmwasm/wasm/v1/tx",
+            "@interchainjs/encoding": "https://esm.sh/@interchainjs/encoding@1.11.1"
+        }
+    }
+    </script>
+
+    <script type="module">
+        import { loadSiteConfig } from '/lib/config-loader.js';
+        import { applyNavGuard } from '/lib/nav-guard.js';
+        applyNavGuard();
+        // ═══════════════════════════════════════════════════════════════
+        // CONFIGURATION
+        // ═══════════════════════════════════════════════════════════════
+
+        const CONFIG = {
+            chainId: "morocco-1",
+            chainName: "Terp Network",
+            rpc: "https://rpc.terp.network",
+            rest: "https://api.terp.network",
+            minterContract: "",
+            staticCollections: ["terp1g5jyfauuxse48cgw2ka2s3ru6td55zzzcut0s49sg8053hu7300sjn85hf"],
+            merkleServerUrl: "",
+            shitstrapFactory: "",
+            explorerBase: "https://ping.pub/terp",
+            bech32Prefix: "terp",
+            denom: "uthiol",
+            denomDisplay: "THIOL",
+            denomDecimals: 6,
+            tokenPageSize: 24,
+        };
+
+        // Async config overlay — merge from config-loader (on-chain + static)
+        loadSiteConfig(CONFIG).catch(() => {});
+
+        const CHAIN_SUGGEST = {
+            chainId: CONFIG.chainId,
+            chainName: CONFIG.chainName,
+            rpc: CONFIG.rpc,
+            rest: CONFIG.rest,
+            bip44: { coinType: 118 },
+            bech32Config: {
+                bech32PrefixAccAddr: "terp",
+                bech32PrefixAccPub: "terppub",
+                bech32PrefixValAddr: "terpvaloper",
+                bech32PrefixValPub: "terpvaloperpub",
+                bech32PrefixConsAddr: "terpvalcons",
+                bech32PrefixConsPub: "terpvalconspub",
+            },
+            currencies: [
+                { coinDenom: "TERP", coinMinimalDenom: "uterp", coinDecimals: 6 },
+                { coinDenom: "THIOL", coinMinimalDenom: "uthiol", coinDecimals: 6 },
+            ],
+            feeCurrencies: [{
+                coinDenom: "THIOL",
+                coinMinimalDenom: "uthiol",
+                coinDecimals: 6,
+                gasPriceStep: { low: 0.01, average: 0.025, high: 0.04 },
+            }],
+            stakeCurrency: { coinDenom: "TERP", coinMinimalDenom: "uterp", coinDecimals: 6 },
+        };
+
+        const COSMES_CHAIN_INFO = [{
+            chainId: CONFIG.chainId,
+            rpc: CONFIG.rpc,
+            gasPrice: { amount: "0.025", denom: CONFIG.denom },
+        }];
+
+        // ═══════════════════════════════════════════════════════════════
+        // DEMO DATA
+        // ═══════════════════════════════════════════════════════════════
+
+        const DEMO_COLLECTIONS = [
+            {
+                addr: "terp1demo_genesis_addr",
+                contractInfo: { name: "Terp Genesis", symbol: "TGEN" },
+                config: { unit_price: { denom: "uthiol", amount: "5000000" }, max_token_supply: 512 },
+                minted: 187,
+                demoParams: { background_style: "nebula", core_color: "purple", ring_count: 5, particle_density: 0.7, glyph_set: "ancient", seed: 42 },
+            },
+            {
+                addr: "terp1demo_carbon_addr",
+                contractInfo: { name: "Carbon Lattice", symbol: "CARB" },
+                config: { unit_price: { denom: "uthiol", amount: "10000000" }, max_token_supply: 256 },
+                minted: 64,
+                demoParams: { background_style: "void", core_color: "teal", ring_count: 3, particle_density: 0.5, glyph_set: "carbon", seed: 137 },
+            },
+            {
+                addr: "terp1demo_solar_addr",
+                contractInfo: { name: "Solar Whisper", symbol: "SOLW" },
+                config: { unit_price: { denom: "uthiol", amount: "25000000" }, max_token_supply: 128 },
+                minted: 12,
+                demoParams: { background_style: "aurora", core_color: "gold", ring_count: 7, particle_density: 0.3, glyph_set: "runes", seed: 2187 },
+            },
+        ];
+
+        // ═══════════════════════════════════════════════════════════════
+        // CONFIG HELPERS  (work with both live MintConfig and demo shapes)
+        // ═══════════════════════════════════════════════════════════════
+
+        // Returns the active price Coin for the current mint count.
+        // Real shape: price_tiers: [{until_count, price: {denom, amount}}]
+        // Demo fallback: unit_price: {denom, amount}
+        function getCurrentPrice(mintConfig) {
+            if (!mintConfig) return { amount: "0", denom: CONFIG.denom };
+            if (mintConfig.price_tiers?.length) {
+                const minted = mintConfig.mint_count || 0;
+                const tier = mintConfig.price_tiers.find(t => minted < t.until_count)
+                    || mintConfig.price_tiers[mintConfig.price_tiers.length - 1];
+                return tier.price;
+            }
+            if (mintConfig.unit_price) return mintConfig.unit_price; // demo fallback
+            return { amount: "0", denom: CONFIG.denom };
+        }
+
+        // Returns the total token supply cap (0 = unlimited).
+        // Real shape: total. Demo fallback: max_token_supply.
+        function getMaxSupply(mintConfig) {
+            if (!mintConfig) return 0;
+            return mintConfig.total || mintConfig.max_token_supply || 0;
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // STATE
+        // ═══════════════════════════════════════════════════════════════
+
+        const state = {
+            address: null,
+            wallet: null,
+            keplrController: null,
+            libsLoaded: false,
+            demoMode: false,
+            // Collection list
+            collections: [],                 // array of collection summary objects
+            collectionCache: {},             // addr -> full data object
+            // Current collection detail
+            currentAddr: null,
+            currentTokenIds: [],             // all token IDs for current collection
+            currentUserTokenIds: [],         // token IDs owned by connected wallet
+            tokenParams: {},                 // tokenId -> extension object (cached)
+            tokenFilter: 'all',              // 'all' | 'mine'
+            tokensPage: 0,
+            // Mint quantity
+            quantity: 1,
+            // Merkle whitelist — keyed by collection addr
+            // undefined = not yet checked, null = confirmed not in whitelist, object = eligible
+            merkleProofs: {},
+            // Shitstrap
+            shitstrapCache: null,            // [{contract, slop, shit, toShit}] from factory
+            walletBalances: {},              // {denom: amount_string}
+            mintStep: "config",             // "config" | "confirm"
+            currentPlan: null,              // computed payment plan
+        };
+
+        // ═══════════════════════════════════════════════════════════════
+        // LIBRARY IMPORTS (cosmes + typed clients)
+        // ═══════════════════════════════════════════════════════════════
+
+        let KeplrController, WalletType, queryContract, MsgExecuteContract;
+        let CwSvgMinterQueryClient, Cw721SvgQueryClient;
+        let CwShitstrapFactoryQueryClient, CwShitstrapQueryClient;
+
+        async function loadLibs() {
+            try {
+                const walletMod = await import("https://esm.sh/@goblinhunt/cosmes@0.0.71-ghunt.21/wallet");
+                KeplrController = walletMod.KeplrController;
+                WalletType = walletMod.WalletType;
+
+                const clientMod = await import("https://esm.sh/@goblinhunt/cosmes@0.0.71-ghunt.21/client");
+                queryContract = clientMod.queryContract;
+                MsgExecuteContract = clientMod.MsgExecuteContract;
+
+                const minterMod = await import("/lib/cw-svg-minter.js");
+                CwSvgMinterQueryClient = minterMod.CwSvgMinterQueryClient;
+
+                const svgMod = await import("/lib/cw721-svg.js");
+                Cw721SvgQueryClient = svgMod.Cw721SvgQueryClient;
+
+                const ssfMod = await import("/lib/cw-shitstrap-factory.js");
+                CwShitstrapFactoryQueryClient = ssfMod.CwShitstrapFactoryQueryClient;
+
+                const ssMod = await import("/lib/cw-shitstrap.js");
+                CwShitstrapQueryClient = ssMod.CwShitstrapQueryClient;
+
+                state.libsLoaded = true;
+                return true;
+            } catch (err) {
+                console.error("Failed to load libraries:", err);
+                showToast("Failed to load libraries. Using demo mode.", "error");
+                return false;
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // COSMES ADAPTERS
+        // ═══════════════════════════════════════════════════════════════
+
+        function createQueryAdapter(rpc) {
+            return {
+                queryContractSmart: (addr, query) => queryContract(rpc, { address: addr, query }),
+            };
+        }
+
+        function createSigningAdapter(wallet, rpc) {
+            return {
+                queryContractSmart: (addr, query) => queryContract(rpc, { address: addr, query }),
+                execute: async (sender, contractAddress, msg, fee, memo, funds) => {
+                    const execMsg = new MsgExecuteContract({
+                        sender, contract: contractAddress, msg, funds: funds || [],
+                    });
+                    return wallet.broadcastTxSync({ msgs: [execMsg], memo: memo || "" }, 1.4);
+                },
+            };
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // SHITSTRAP — alternate-token payment for minting
+        // ═══════════════════════════════════════════════════════════════
+
+        const SHIT_RATE_SCALE = BigInt("1000000000000000000"); // 1e18
+        const SS_CACHE_TTL = 60 * 60 * 1000; // 1 hour
+
+        // uthiol received when sending slopAmount at shitRate (floor)
+        function shitstrapUthiolOut(slopAmount, shitRate) {
+            return (BigInt(slopAmount) * BigInt(shitRate)) / SHIT_RATE_SCALE;
+        }
+
+        // slop tokens needed to obtain uthiolNeeded (ceiling)
+        function shitstrapSlopNeeded(uthiolNeeded, shitRate) {
+            const rate = BigInt(shitRate);
+            return (BigInt(uthiolNeeded) * SHIT_RATE_SCALE + rate - 1n) / rate;
+        }
+
+        // Load all active shistraps from factory, cache in localStorage for 1 hour.
+        async function loadShistraps() {
+            if (!CONFIG.shitstrapFactory || !CwShitstrapFactoryQueryClient) return;
+
+            const cacheKey = `terp-shistraps-v1-${CONFIG.shitstrapFactory}`;
+            try {
+                const cached = JSON.parse(localStorage.getItem(cacheKey) || "null");
+                if (cached && Date.now() - cached.ts < SS_CACHE_TTL) {
+                    state.shitstrapCache = cached.data;
+                    return;
+                }
+            } catch (_) {}
+
+            try {
+                const adapter = createQueryAdapter(CONFIG.rpc);
+                const factory = new CwShitstrapFactoryQueryClient(adapter, CONFIG.shitstrapFactory);
+
+                const all = [];
+                let startAfter = null;
+                while (true) {
+                    const r = await factory.listShitstrapContracts({
+                        limit: 30,
+                        ...(startAfter ? { startAfter } : {}),
+                    }).catch(() => null);
+                    if (!r || r.length === 0) break;
+                    all.push(...r);
+                    if (r.length < 30) break;
+                    startAfter = r[r.length - 1].contract;
+                }
+
+                // Enrich each with remaining capacity; drop already-full ones.
+                const enriched = await Promise.all(all.map(async ss => {
+                    const ssClient = new CwShitstrapQueryClient(
+                        createQueryAdapter(CONFIG.rpc), ss.contract
+                    );
+                    const [fullOfShit, toShit] = await Promise.all([
+                        ssClient.fullOfShit().catch(() => true),
+                        ssClient.toShit().catch(() => "0"),
+                    ]);
+                    return { ...ss, fullOfShit, toShit: toShit.toString() };
+                }));
+
+                state.shitstrapCache = enriched.filter(ss => !ss.fullOfShit);
+                try {
+                    localStorage.setItem(cacheKey, JSON.stringify({
+                        ts: Date.now(), data: state.shitstrapCache,
+                    }));
+                } catch (_) {}
+            } catch (err) {
+                console.warn("Failed to load shistraps:", err);
+                state.shitstrapCache = [];
+            }
+        }
+
+        // Query all bank balances for the connected wallet via REST.
+        async function queryWalletBalances() {
+            if (!state.address) { state.walletBalances = {}; return; }
+            try {
+                const r = await fetch(
+                    `${CONFIG.rest}/cosmos/bank/v1beta1/balances/${state.address}`
+                );
+                const json = await r.json();
+                state.walletBalances = {};
+                for (const b of (json.balances || [])) {
+                    state.walletBalances[b.denom] = b.amount;
+                }
+            } catch (err) {
+                console.warn("Failed to query wallet balances:", err);
+            }
+        }
+
+        // Compute optimal payment plan for `quantity` NFTs at `nftPriceCoin`.
+        // Uses wallet uthiol first, then shistraps ordered by most uthiol available.
+        function computeShitstrapPlan(quantity, nftPriceCoin) {
+            const pricePerToken = BigInt(nftPriceCoin.amount || "0");
+            const totalUthiolNeeded = pricePerToken * BigInt(quantity);
+
+            const uthiolBal = BigInt(state.walletBalances[CONFIG.denom] || "0");
+            const uthiolFromWallet = uthiolBal < totalUthiolNeeded ? uthiolBal : totalUthiolNeeded;
+            let uthiolRemaining = totalUthiolNeeded - uthiolFromWallet;
+
+            const plan = {
+                totalUthiol: totalUthiolNeeded.toString(),
+                uthiolFromWallet: uthiolFromWallet.toString(),
+                steps: [],
+                canAfford: uthiolRemaining === 0n,
+            };
+
+            if (uthiolRemaining === 0n || !state.shitstrapCache?.length) return plan;
+
+            // Find all (shitstrap, slop-denom) combos the user has balance for
+            const compatibles = [];
+            for (const ss of state.shitstrapCache) {
+                for (const slop of (ss.slop || [])) {
+                    const slopDenom = slop.token?.native;
+                    if (!slopDenom) continue; // cw20 slop not yet supported
+                    const userBal = BigInt(state.walletBalances[slopDenom] || "0");
+                    if (userBal === 0n) continue;
+                    const maxUthiolFromBal = shitstrapUthiolOut(userBal, slop.shit_rate);
+                    const ssCapacity = BigInt(ss.toShit || "0");
+                    const maxUthiol = maxUthiolFromBal < ssCapacity ? maxUthiolFromBal : ssCapacity;
+                    if (maxUthiol === 0n) continue;
+                    compatibles.push({
+                        contract: ss.contract,
+                        slopDenom,
+                        shitRate: slop.shit_rate,
+                        userBal,
+                        maxUthiol,
+                    });
+                }
+            }
+
+            // Sort: most uthiol available first
+            compatibles.sort((a, b) =>
+                b.maxUthiol > a.maxUthiol ? 1 : b.maxUthiol < a.maxUthiol ? -1 : 0
+            );
+
+            for (const c of compatibles) {
+                if (uthiolRemaining === 0n) break;
+                const uthiolFromThis = uthiolRemaining < c.maxUthiol ? uthiolRemaining : c.maxUthiol;
+                const slopNeeded = shitstrapSlopNeeded(uthiolFromThis, c.shitRate);
+                const slopSend = slopNeeded < c.userBal ? slopNeeded : c.userBal;
+                const uthiolActual = shitstrapUthiolOut(slopSend, c.shitRate);
+                plan.steps.push({
+                    contract: c.contract,
+                    slopDenom: c.slopDenom,
+                    slopAmount: slopSend.toString(),
+                    uthiolOut: uthiolActual.toString(),
+                });
+                uthiolRemaining -= uthiolActual;
+            }
+
+            plan.canAfford = uthiolRemaining === 0n;
+            return plan;
+        }
+
+        // Max NFTs the user can mint given their uthiol + all compatible shistraps.
+        function computeMaxQuantity(nftPriceCoin, collectionRemaining) {
+            const pricePerToken = BigInt(nftPriceCoin.amount || "0");
+            if (pricePerToken === 0n) return Math.min(collectionRemaining, 10);
+
+            let totalUthiolAvailable = BigInt(state.walletBalances[CONFIG.denom] || "0");
+            if (state.shitstrapCache) {
+                for (const ss of state.shitstrapCache) {
+                    for (const slop of (ss.slop || [])) {
+                        const slopDenom = slop.token?.native;
+                        if (!slopDenom) continue;
+                        const userBal = BigInt(state.walletBalances[slopDenom] || "0");
+                        if (userBal === 0n) continue;
+                        const maxFromBal = shitstrapUthiolOut(userBal, slop.shit_rate);
+                        const capacity = BigInt(ss.toShit || "0");
+                        totalUthiolAvailable += maxFromBal < capacity ? maxFromBal : capacity;
+                    }
+                }
+            }
+
+            const maxFromBalance = Number(totalUthiolAvailable / pricePerToken);
+            return Math.min(maxFromBalance, collectionRemaining, 10);
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // WHITELIST — merkle proof eligibility
+        // ═══════════════════════════════════════════════════════════════
+
+        // Query merkle server for the connected wallet's proof in a given collection.
+        // state.merkleProofs[addr] is set to:
+        //   {proof_hashes, root}  — wallet is whitelisted
+        //   null                  — wallet is NOT in the whitelist (server returned 404)
+        //   undefined             — not yet checked
+        async function fetchMerkleProof(collectionAddr) {
+            if (!CONFIG.merkleServerUrl || !state.address) return;
+            if (collectionAddr.startsWith("terp1demo")) return;
+            const base = CONFIG.merkleServerUrl.replace(/\/$/, "");
+            const url = `${base}/tree/${encodeURIComponent(collectionAddr)}/proof/${encodeURIComponent(state.address)}`;
+            try {
+                const r = await fetch(url);
+                if (r.status === 404) {
+                    state.merkleProofs[collectionAddr] = null;
+                    return;
+                }
+                if (!r.ok) return; // server error — leave as undefined, don't cache
+                const data = await r.json();
+                state.merkleProofs[collectionAddr] = {
+                    proof_hashes: data.proof_hashes || [],
+                    root: data.root || "",
+                };
+            } catch (err) {
+                console.warn("Merkle proof fetch failed:", err);
+            }
+        }
+
+        // Render the whitelist eligibility badge inside the mint panel.
+        function renderWhitelistBadge(collectionAddr) {
+            const badge = document.getElementById("whitelist-badge");
+            if (!badge) return;
+            if (!CONFIG.merkleServerUrl || !state.address || state.demoMode) {
+                badge.style.display = "none";
+                return;
+            }
+            const proof = state.merkleProofs[collectionAddr];
+            if (proof === undefined) {
+                // Still fetching — hide until we know
+                badge.style.display = "none";
+                return;
+            }
+            badge.innerHTML = proof !== null
+                ? `<span class="wl-badge wl-eligible">Whitelisted ✓</span>`
+                : `<span class="wl-badge wl-ineligible">Not Whitelisted</span>`;
+            badge.style.display = "block";
+        }
+
+        // Render the payment breakdown chips inside the mint panel.
+        function renderPaymentSection(summary) {
+            const paySection = document.getElementById("payment-section");
+            const payOptions = document.getElementById("payment-options");
+            if (!paySection || !state.address || state.demoMode) {
+                if (paySection) paySection.style.display = "none";
+                return;
+            }
+
+            const price = getCurrentPrice(summary?.config);
+            const plan = computeShitstrapPlan(state.quantity, price);
+            state.currentPlan = plan;
+
+            const chips = [];
+            if (BigInt(plan.uthiolFromWallet || "0") > 0n) {
+                chips.push(`<div class="payment-chip">
+                    <span class="chip-label">Wallet</span>
+                    <span class="chip-denom">${CONFIG.denomDisplay}</span>
+                    <span class="chip-amount">${formatPrice(plan.uthiolFromWallet)}</span>
+                </div>`);
+            }
+            for (const step of plan.steps) {
+                const displayDenom = step.slopDenom.replace(/^u/, '').toUpperCase();
+                chips.push(`<div class="payment-chip shitstrap-chip">
+                    <span class="chip-label">Shitstrap</span>
+                    <span class="chip-denom">${displayDenom} → ${CONFIG.denomDisplay}</span>
+                    <span class="chip-amount">${step.slopAmount} ${step.slopDenom} → ${formatPrice(step.uthiolOut)}</span>
+                </div>`);
+            }
+            if (!plan.canAfford) {
+                chips.push(`<div class="payment-chip insufficient">
+                    <span class="chip-insufficient">⚠ Insufficient balance for ${state.quantity} token(s)</span>
+                </div>`);
+            }
+
+            payOptions.innerHTML = chips.join('');
+            paySection.style.display = chips.length ? "block" : "none";
+        }
+
+        // Render the two-step confirmation panel.
+        function renderMintConfirm(summary, plan) {
+            const confirmSteps = document.getElementById("confirm-steps");
+            const steps = [];
+
+            for (const step of (plan.steps || [])) {
+                const displayDenom = step.slopDenom.replace(/^u/, '').toUpperCase();
+                steps.push(`<div class="confirm-step">
+                    <span class="confirm-step-icon">⇄</span>
+                    <span class="confirm-step-desc">Swap ${step.slopAmount} ${step.slopDenom} via shitstrap</span>
+                    <span class="confirm-step-amount">→ ${formatPrice(step.uthiolOut)} ${CONFIG.denomDisplay}</span>
+                </div>`);
+            }
+
+            const collectionName = summary?.contractInfo?.name || "Collection";
+            steps.push(`<div class="confirm-step">
+                <span class="confirm-step-icon">✦</span>
+                <span class="confirm-step-desc">Mint ${state.quantity}× ${escapeHtml(collectionName)}</span>
+                <span class="confirm-step-amount">${formatPrice(plan.totalUthiol)} ${CONFIG.denomDisplay}</span>
+            </div>`);
+
+            confirmSteps.innerHTML = steps.join('');
+            document.getElementById("confirm-panel").style.display = "block";
+            document.getElementById("btn-mint").textContent = "↓ Review below";
+            document.getElementById("btn-mint").disabled = true;
+        }
+
+        window.cancelMintConfirm = function () {
+            state.mintStep = "config";
+            state.currentPlan = null;
+            document.getElementById("confirm-panel").style.display = "none";
+            document.getElementById("btn-mint").textContent = "Review";
+            document.getElementById("btn-mint").disabled = false;
+        };
+
+        // Execute the mint tx — shitstrap messages first, then the mint.
+        window.executeMintTx = async function () {
+            const addr = state.currentAddr;
+            const plan = state.currentPlan;
+            if (!plan || !addr) return;
+
+            const confirmBtn = document.getElementById("btn-confirm-mint");
+            confirmBtn.textContent = "Minting...";
+            confirmBtn.disabled = true;
+
+            try {
+                const msgs = [];
+
+                for (const step of (plan.steps || [])) {
+                    msgs.push(new MsgExecuteContract({
+                        sender: state.wallet.address,
+                        contract: step.contract,
+                        msg: {
+                            shit_strap: {
+                                shit: {
+                                    denom: { native: step.slopDenom },
+                                    amount: step.slopAmount,
+                                },
+                                dao: null,
+                            },
+                        },
+                        funds: [{ denom: step.slopDenom, amount: step.slopAmount }],
+                    }));
+                }
+
+                const totalFunds = BigInt(plan.totalUthiol);
+                msgs.push(new MsgExecuteContract({
+                    sender: state.wallet.address,
+                    contract: addr,
+                    msg: { mint: { allocation: null, amount: state.quantity, proof_hashes: state.merkleProofs[addr]?.proof_hashes || [] } },
+                    funds: totalFunds > 0n
+                        ? [{ denom: CONFIG.denom, amount: plan.totalUthiol }]
+                        : [],
+                }));
+
+                const result = await state.wallet.broadcastTxSync({ msgs, memo: "" }, 1.6);
+                const txHash = result?.hash || result?.transactionHash || result || "";
+                const summary = state.collectionCache[addr] || state.collections.find(c => c.addr === addr);
+
+                showConfetti();
+                showTxResult({
+                    success: true,
+                    txHash: typeof txHash === "string" ? txHash : "",
+                    collectionName: summary?.contractInfo?.name || "Collection",
+                });
+
+                cancelMintConfirm();
+                await queryWalletBalances();
+                fetchCollectionSummary(addr).then(() => {
+                    const updated = state.collectionCache[addr];
+                    if (updated) renderMintPanel(updated);
+                });
+                refreshCollectionUserTokens();
+                if (state.collectionCache[addr]) state.collectionCache[addr].allTokenIds = null;
+                fetchAllTokenIds(addr).then(ids => {
+                    state.currentTokenIds = ids;
+                    updateFilterUI();
+                });
+            } catch (err) {
+                console.error("Mint failed:", err);
+                const errStr = (err.message || err.toString() || "");
+                const errLower = errStr.toLowerCase();
+                let txHash = "";
+                const hashMatch = errStr.match(/[A-F0-9]{64}/i);
+                if (hashMatch) txHash = hashMatch[0].toUpperCase();
+                let title = "Transaction Failed";
+                let message = errStr;
+                if (errLower.includes("insufficient")) {
+                    title = "Insufficient Funds";
+                    message = "Not enough funds for mint price and gas.";
+                } else if (errLower.includes("reject")) {
+                    showToast("Transaction rejected", "info");
+                    return;
+                } else if (errLower.includes("sold out") || errLower.includes("max supply")) {
+                    title = "Sold Out";
+                    message = "This collection has reached its maximum supply.";
+                }
+                showTxResult({ success: false, txHash, title, message, rawError: errStr });
+            } finally {
+                confirmBtn.textContent = "Confirm Mint";
+                confirmBtn.disabled = false;
+            }
+        };
+
+        // ═══════════════════════════════════════════════════════════════
+        // WALLET
+        // ═══════════════════════════════════════════════════════════════
+
+        window.handleWalletClick = function () {
+            if (state.address) {
+                disconnectWallet();
+            } else {
+                connectWallet();
+            }
+        };
+
+        async function connectWallet() {
+            if (!window.keplr) {
+                showToast("Please install the Keplr wallet extension", "error");
+                window.open("https://www.keplr.app/download", "_blank");
+                return;
+            }
+
+            if (!state.libsLoaded) {
+                showToast("Libraries still loading, please try again", "info");
+                return;
+            }
+
+            const btn = document.getElementById("btn-wallet");
+            btn.textContent = "Connecting...";
+            btn.disabled = true;
+
+            try {
+                await window.keplr.experimentalSuggestChain(CHAIN_SUGGEST);
+
+                if (!state.keplrController) {
+                    state.keplrController = new KeplrController("");
+                }
+
+                const wallets = await state.keplrController.connect(
+                    WalletType.EXTENSION,
+                    COSMES_CHAIN_INFO
+                );
+
+                const wallet = wallets.get(CONFIG.chainId);
+                if (!wallet) {
+                    showToast("Failed to connect to " + CONFIG.chainName, "error");
+                    return;
+                }
+
+                state.wallet = wallet;
+                state.address = wallet.address;
+                localStorage.setItem("terp-mint-address", wallet.address);
+
+                state.keplrController.onDisconnect(() => {
+                    state.address = null;
+                    state.wallet = null;
+                    localStorage.removeItem("terp-mint-address");
+                    updateWalletUI();
+                    if (state.currentAddr) refreshCollectionUserTokens();
+                });
+
+                state.keplrController.onAccountChange(async (newWallets) => {
+                    const w = newWallets.find(nw => nw.chainId === CONFIG.chainId);
+                    if (w) {
+                        state.wallet = w;
+                        state.address = w.address;
+                        localStorage.setItem("terp-mint-address", w.address);
+                        updateWalletUI();
+                        if (state.currentAddr) await refreshCollectionUserTokens();
+                    }
+                });
+
+                updateWalletUI();
+                showToast(`Connected: ${wallet.address.slice(0, 10)}...${wallet.address.slice(-6)}`, "success");
+
+                // Query balances + shistraps + merkle proof, then refresh UI
+                await queryWalletBalances();
+                if (state.currentAddr) {
+                    await Promise.all([
+                        refreshCollectionUserTokens(),
+                        loadShistraps(),
+                        fetchMerkleProof(state.currentAddr),
+                    ]);
+                    const sum = state.collectionCache[state.currentAddr];
+                    if (sum) {
+                        renderPaymentSection(sum);
+                        renderWhitelistBadge(state.currentAddr);
+                    }
+                }
+            } catch (err) {
+                console.error("Wallet connect failed:", err);
+                const msg = (err.message || "").toLowerCase();
+                if (msg.includes("reject")) {
+                    showToast("Connection rejected by user", "info");
+                } else {
+                    showToast("Failed to connect wallet", "error");
+                }
+            } finally {
+                document.getElementById("btn-wallet").disabled = false;
+                updateWalletUI();
+            }
+        }
+
+        function disconnectWallet() {
+            if (state.keplrController) {
+                state.keplrController.disconnect([CONFIG.chainId]);
+            }
+            state.address = null;
+            state.wallet = null;
+            localStorage.removeItem("terp-mint-address");
+            updateWalletUI();
+            showToast("Wallet disconnected", "info");
+        }
+
+        function updateWalletUI() {
+            const btn = document.getElementById("btn-wallet");
+            const colBtn = document.getElementById("btn-collection");
+
+            if (state.address) {
+                btn.textContent = state.address.slice(0, 8) + "..." + state.address.slice(-4);
+                btn.classList.add("connected");
+                colBtn.style.display = "inline-flex";
+            } else {
+                btn.textContent = "Connect Wallet";
+                btn.classList.remove("connected");
+                colBtn.style.display = "none";
+            }
+        }
+
+        async function tryReconnect() {
+            const saved = localStorage.getItem("terp-mint-address");
+            if (!saved || !window.keplr || !state.libsLoaded) return;
+
+            try {
+                if (!state.keplrController) {
+                    state.keplrController = new KeplrController("");
+                }
+
+                const wallets = await state.keplrController.connect(
+                    WalletType.EXTENSION,
+                    COSMES_CHAIN_INFO
+                );
+
+                const wallet = wallets.get(CONFIG.chainId);
+                if (wallet && wallet.address === saved) {
+                    state.wallet = wallet;
+                    state.address = saved;
+                    updateWalletUI();
+                } else {
+                    localStorage.removeItem("terp-mint-address");
+                }
+            } catch {
+                localStorage.removeItem("terp-mint-address");
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // COLLECTION FETCHING
+        // ═══════════════════════════════════════════════════════════════
+
+        async function fetchCollections() {
+            if (!state.libsLoaded) {
+                state.demoMode = true;
+                return DEMO_COLLECTIONS;
+            }
+
+            // If no minter contract but staticCollections are configured, use those directly
+            if (!CONFIG.minterContract && CONFIG.staticCollections?.length) {
+                try {
+                    const collections = await Promise.all(
+                        CONFIG.staticCollections.map(addr => fetchCollectionSummary(addr))
+                    );
+                    const valid = collections.filter(Boolean);
+                    if (valid.length > 0) {
+                        state.demoMode = false;
+                        return valid;
+                    }
+                } catch (err) {
+                    console.error("Failed to fetch static collections:", err);
+                }
+                state.demoMode = true;
+                return DEMO_COLLECTIONS;
+            }
+
+            if (!CONFIG.minterContract) {
+                state.demoMode = true;
+                return DEMO_COLLECTIONS;
+            }
+
+            try {
+                const adapter = createQueryAdapter(CONFIG.rpc);
+                const minter = new CwSvgMinterQueryClient(adapter, CONFIG.minterContract);
+
+                // Paginate all collections newest-first via listSvgCollectionsReverse.
+                // Response: SvgCollection[] = [{ contract, creator, name, symbol }, ...]
+                let allItems = [];
+                let startBefore = null;
+                while (true) {
+                    const batch = await minter.listSvgCollectionsReverse({ limit: 30, startBefore });
+                    console.log(batch)
+                    if (!Array.isArray(batch) || batch.length === 0) break;
+                    allItems = [...allItems, ...batch];
+                    if (batch.length < 30) break;
+                    startBefore = batch[batch.length - 1].contract;
+                }
+
+                if (allItems.length === 0) {
+                    state.demoMode = true;
+                    return DEMO_COLLECTIONS;
+                }
+
+                // Fetch summary for each collection in parallel, passing minter metadata
+                // so fetchCollectionSummary can skip the contractInfo() RPC call.
+                const collections = await Promise.all(
+                    allItems.map(item => fetchCollectionSummary(item.contract, item))
+                );
+
+                state.demoMode = false;
+                return collections.filter(Boolean);
+            } catch (err) {
+                console.error("Failed to fetch collections:", err);
+                state.demoMode = true;
+                showToast("Minter query failed. Using demo data.", "error");
+                return DEMO_COLLECTIONS;
+            }
+        }
+
+        // svgCollection is an optional SvgCollection object from the minter:
+        // { contract, creator, name, symbol } — skips the contractInfo() RPC call.
+        async function fetchCollectionSummary(addr, svgCollection = null) {
+            try {
+                const adapter = createQueryAdapter(CONFIG.rpc);
+                const cw721 = new Cw721SvgQueryClient(adapter, addr);
+
+                // Always fetch config, numTokens, and placeholder in parallel.
+                // Only query contractInfo when name/symbol aren't already known.
+                const queries = [
+                    cw721.config().catch(() => null),
+                    cw721.numTokens().catch(() => ({ count: 0 })),
+                    cw721.svgPlaceholder({ seed: addr }).catch(() => null),
+                ];
+                if (!svgCollection) {
+                    queries.push(cw721.contractInfo().catch(() => null));
+                }
+
+                const [configResp, numTokens, placeholderResp, contractInfoResp] = await Promise.all(queries);
+
+                const contractInfo = svgCollection
+                    ? { name: svgCollection.name, symbol: svgCollection.symbol }
+                    : contractInfoResp || { name: addr.slice(0, 16) + "...", symbol: "NFT" };
+
+                // Config response shape: { config: MintConfig }
+                const mintConfig = configResp?.config || null;
+
+                // Placeholder response shape: { svg: "..." }
+                const placeholder = placeholderResp?.svg || null;
+
+                const summary = {
+                    addr,
+                    creator: svgCollection?.creator || null,
+                    contractInfo,
+                    config: mintConfig,
+                    minted: numTokens?.count || 0,
+                    placeholder,
+                };
+
+                // Cache it
+                state.collectionCache[addr] = {
+                    ...summary,
+                    template: null,
+                    allTokenIds: null,
+                    loaded: true,
+                };
+
+                return summary;
+            } catch (err) {
+                console.warn(`Failed to fetch summary for ${addr}:`, err);
+                return null;
+            }
+        }
+
+        async function fetchCollectionTemplate(addr) {
+            if (state.collectionCache[addr]?.template !== undefined &&
+                state.collectionCache[addr]?.template !== null) {
+                return state.collectionCache[addr].template;
+            }
+
+            try {
+                const adapter = createQueryAdapter(CONFIG.rpc);
+                const cw721 = new Cw721SvgQueryClient(adapter, addr);
+                const result = await cw721.svgTemplate();
+                // Response may be { template: string } or raw string
+                const template = result?.template || (typeof result === 'string' ? result : null);
+
+                if (state.collectionCache[addr]) {
+                    state.collectionCache[addr].template = template;
+                }
+                return template;
+            } catch (err) {
+                console.warn(`Failed to fetch template for ${addr}:`, err);
+                return null;
+            }
+        }
+
+        async function fetchAllTokenIds(addr) {
+            if (state.collectionCache[addr]?.allTokenIds) {
+                return state.collectionCache[addr].allTokenIds;
+            }
+
+            const adapter = createQueryAdapter(CONFIG.rpc);
+            const cw721 = new Cw721SvgQueryClient(adapter, addr);
+
+            let all = [];
+            let startAfter = null;
+            while (all.length < 2000) {
+                const r = await cw721.allTokens({ limit: 30, startAfter }).catch(() => ({ tokens: [] }));
+                const tokens = r?.tokens || [];
+                all = [...all, ...tokens];
+                if (tokens.length < 30) break;
+                startAfter = tokens[tokens.length - 1];
+            }
+
+            if (state.collectionCache[addr]) {
+                state.collectionCache[addr].allTokenIds = all;
+            }
+            return all;
+        }
+
+        async function fetchUserTokenIds(addr) {
+            if (!state.address) return [];
+            const adapter = createQueryAdapter(CONFIG.rpc);
+            const cw721 = new Cw721SvgQueryClient(adapter, addr);
+            const r = await cw721.tokens({ owner: state.address, limit: 30 }).catch(() => ({ tokens: [] }));
+            return r?.tokens || [];
+        }
+
+        async function fetchTokenParamsPage(addr, tokenIds) {
+            const toFetch = tokenIds.filter(id => !state.tokenParams[id]);
+            if (!toFetch.length) return;
+
+            const adapter = createQueryAdapter(CONFIG.rpc);
+            const cw721 = new Cw721SvgQueryClient(adapter, addr);
+
+            for (const tokenId of toFetch) {
+                try {
+                    const info = await cw721.nftInfo({ tokenId });
+                    state.tokenParams[tokenId] = info?.extension || {};
+                } catch (err) {
+                    console.warn(`Failed to fetch params for token ${tokenId}:`, err);
+                    state.tokenParams[tokenId] = {};
+                }
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // VIEWS
+        // ═══════════════════════════════════════════════════════════════
+
+        function showListView() {
+            document.getElementById("view-list").style.display = "block";
+            const detail = document.getElementById("view-collection");
+            detail.style.display = "none";
+            state.currentAddr = null;
+            state.currentTokenIds = [];
+            state.currentUserTokenIds = [];
+            state.tokenParams = {};
+        }
+
+        function showCollectionDetailView() {
+            document.getElementById("view-list").style.display = "none";
+            const detail = document.getElementById("view-collection");
+            detail.style.display = "flex";
+        }
+
+        window.showListView = showListView;
+
+        // ═══════════════════════════════════════════════════════════════
+        // OPEN COLLECTION
+        // ═══════════════════════════════════════════════════════════════
+
+        window.openCollection = async function (addr) {
+            state.currentAddr = addr;
+            state.currentTokenIds = [];
+            state.currentUserTokenIds = [];
+            state.tokenParams = {};
+            state.tokenFilter = "all";
+            state.tokensPage = 0;
+            state.quantity = 1;
+
+            showCollectionDetailView();
+
+            // Render header from cached summary
+            const summary = state.collectionCache[addr] || state.collections.find(c => c.addr === addr);
+            if (summary) {
+                renderCollectionHeader(summary);
+                renderMintPanel(summary);
+            }
+
+            // Reset filter UI
+            document.getElementById("filter-row").style.display = "none";
+            document.getElementById("filter-mine").style.display = "none";
+            document.getElementById("filter-all").classList.add("active");
+            document.getElementById("filter-mine").classList.remove("active");
+
+            // Show token loading spinner
+            document.getElementById("loading-tokens").style.display = "flex";
+            document.getElementById("token-grid").innerHTML = "";
+            document.getElementById("load-more-row").style.display = "none";
+
+            try {
+                if (state.demoMode) {
+                    // Demo: generate fake token IDs
+                    state.currentTokenIds = Array.from({ length: summary.minted || 12 }, (_, i) => String(i + 1));
+                } else {
+                    state.currentTokenIds = await fetchAllTokenIds(addr);
+                }
+
+                // Fetch user tokens + wallet balances + shistraps + merkle proof if wallet connected
+                if (state.address && !state.demoMode) {
+                    const [userIds] = await Promise.all([
+                        fetchUserTokenIds(addr),
+                        queryWalletBalances(),
+                        loadShistraps(),
+                        fetchMerkleProof(addr),
+                    ]);
+                    state.currentUserTokenIds = userIds;
+                    const sum = state.collectionCache[addr] || state.collections.find(c => c.addr === addr);
+                    if (sum && state.currentAddr === addr) {
+                        renderPaymentSection(sum);
+                        renderWhitelistBadge(addr);
+                    }
+                }
+
+                updateFilterUI();
+            } finally {
+                document.getElementById("loading-tokens").style.display = "none";
+            }
+
+            await renderTokenGridPage(true);
+        };
+
+        function renderPriceTiers(config, minted) {
+            const tiers = config?.price_tiers;
+            if (!tiers?.length) return "";
+            const currentTier = tiers.find(t => minted < t.until_count) || tiers[tiers.length - 1];
+            let prev = 0;
+            const rows = tiers.map((tier, i) => {
+                const cls = tier === currentTier ? "current"
+                          : minted >= tier.until_count ? "ended"
+                          : "future";
+                const isLast = i === tiers.length - 1;
+                const range = isLast && cls !== "ended"
+                    ? `${prev + 1}+`
+                    : `${prev + 1} – ${tier.until_count}`;
+                const tag = cls === "current" ? `<span class="price-tier-current-tag">current</span>` : "";
+                prev = tier.until_count;
+                return `<div class="price-tier ${cls}">
+                    <div class="price-tier-dot"></div>
+                    <span class="price-tier-range">${range} mints</span>
+                    <span class="price-tier-price">${formatPrice(tier.price.amount)}</span>
+                    ${tag}
+                </div>`;
+            }).join("");
+            return `<div class="price-tiers-wrap">
+                <div class="price-tiers-label">Price Schedule</div>
+                <div class="price-tiers">${rows}</div>
+            </div>`;
+        }
+
+        function renderCollectionHeader(summary) {
+            const price = getCurrentPrice(summary.config);
+            const maxSupply = getMaxSupply(summary.config);
+            const minted = summary.minted || 0;
+            const remaining = maxSupply > 0 ? maxSupply - minted : "∞";
+            const statusClass = (remaining === 0) ? "ended" : "live";
+            const statusText = (remaining === 0) ? "Sold Out" : "Live";
+            const hasTiers = (summary.config?.price_tiers?.length || 0) > 1;
+
+            const previewSvg = summary.placeholder
+                || getCachedSVG("preview_" + summary.addr, summary.demoParams || extractSvgParams({}, summary.addr || "terp1default"));
+
+            const previewHtml = previewSvg
+                ? scopeSvgIds(previewSvg, "detail-" + summary.addr.slice(-8))
+                : `<div class="loading-spinner"></div>`;
+
+            document.getElementById("col-detail-header").innerHTML = `
+                <div class="col-detail-preview" id="col-detail-preview">${previewHtml}</div>
+                <div class="col-detail-info">
+                    <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+                        <h2 class="col-detail-name">${escapeHtml(summary.contractInfo?.name || "Collection")}</h2>
+                        <span class="col-status-badge ${statusClass}">${statusText}</span>
+                    </div>
+                    <div class="col-detail-stats">
+                        ${!hasTiers ? `<div class="col-detail-stat">
+                            <span class="detail-stat-label">Price</span>
+                            <span class="detail-stat-value">${formatPrice(price.amount)}</span>
+                        </div>` : ""}
+                        <div class="col-detail-stat">
+                            <span class="detail-stat-label">Minted</span>
+                            <span class="detail-stat-value">${minted}</span>
+                        </div>
+                        <div class="col-detail-stat">
+                            <span class="detail-stat-label">Max Supply</span>
+                            <span class="detail-stat-value">${maxSupply > 0 ? maxSupply.toLocaleString() : "Unlimited"}</span>
+                        </div>
+                        <div class="col-detail-stat">
+                            <span class="detail-stat-label">Symbol</span>
+                            <span class="detail-stat-value">${escapeHtml(summary.contractInfo?.symbol || "")}</span>
+                        </div>
+                    </div>
+                    ${renderPriceTiers(summary.config, minted)}
+                </div>`;
+        }
+
+        function renderMintPanel(summary) {
+            const price = getCurrentPrice(summary.config);
+            document.getElementById("mint-panel").style.display = "flex";
+            document.getElementById("mint-price").textContent = formatPrice(price.amount);
+
+            if (summary.addr.startsWith("terp1demo")) {
+                document.getElementById("btn-mint").disabled = true;
+                document.getElementById("btn-mint").textContent = "Demo Mode";
+                updateMintTotal(summary);
+                return;
+            }
+
+            const maxSupply = getMaxSupply(summary.config);
+            const remaining = maxSupply > 0 ? maxSupply - (summary.minted || 0) : 100;
+            const soldOut = remaining <= 0;
+            document.getElementById("btn-mint").disabled = soldOut;
+            document.getElementById("btn-mint").textContent = soldOut ? "Sold Out" : "Review";
+            updateMintTotal(summary);
+            renderWhitelistBadge(summary.addr);
+            renderPaymentSection(summary);
+        }
+
+        function updateFilterUI() {
+            const total = state.currentTokenIds.length;
+            const mine = state.currentUserTokenIds.length;
+
+            document.getElementById("filter-row").style.display = total > 0 ? "flex" : "none";
+            document.getElementById("token-count-label").textContent = total + " token" + (total !== 1 ? "s" : "");
+
+            if (mine > 0) {
+                document.getElementById("my-token-count").textContent = mine;
+                document.getElementById("filter-mine").style.display = "inline-flex";
+            }
+        }
+
+        async function refreshCollectionUserTokens() {
+            if (!state.currentAddr || state.demoMode) return;
+            state.currentUserTokenIds = state.address
+                ? await fetchUserTokenIds(state.currentAddr)
+                : [];
+            updateFilterUI();
+            if (state.tokenFilter === 'mine') {
+                state.tokensPage = 0;
+                await renderTokenGridPage(true);
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // TOKEN GRID
+        // ═══════════════════════════════════════════════════════════════
+
+        window.setTokenFilter = async function (filter) {
+            state.tokenFilter = filter;
+            state.tokensPage = 0;
+
+            document.getElementById("filter-all").classList.toggle("active", filter === "all");
+            document.getElementById("filter-mine").classList.toggle("active", filter === "mine");
+
+            await renderTokenGridPage(true);
+        };
+
+        window.loadMoreTokens = async function () {
+            state.tokensPage++;
+            await renderTokenGridPage(false);
+        };
+
+        async function renderTokenGridPage(reset) {
+            const addr = state.currentAddr;
+            if (!addr) return;
+
+            const tokenIds = state.tokenFilter === 'mine'
+                ? state.currentUserTokenIds
+                : state.currentTokenIds;
+
+            const pageSize = CONFIG.tokenPageSize;
+            const start = state.tokensPage * pageSize;
+            const end = Math.min(start + pageSize, tokenIds.length);
+            const pageTokens = tokenIds.slice(start, end);
+
+            const grid = document.getElementById("token-grid");
+            if (reset) {
+                grid.innerHTML = "";
+                // Show empty state if no tokens
+                if (tokenIds.length === 0) {
+                    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+                        <p>${state.tokenFilter === 'mine'
+                            ? "You don't own any tokens from this collection yet."
+                            : "No tokens minted yet."}</p>
+                    </div>`;
+                    document.getElementById("load-more-row").style.display = "none";
+                    return;
+                }
+            }
+
+            if (pageTokens.length === 0) {
+                document.getElementById("load-more-row").style.display = "none";
+                return;
+            }
+
+            // Fetch params for this page (skips already-cached)
+            if (!state.demoMode) {
+                await fetchTokenParamsPage(addr, pageTokens);
+            }
+
+            // Build and append cards
+            const ownedSet = new Set(state.currentUserTokenIds);
+            for (const tokenId of pageTokens) {
+                const extension = state.demoMode ? {} : (state.tokenParams[tokenId] || {});
+                const card = buildTokenCard(tokenId, extension, addr, ownedSet.has(tokenId));
+                grid.appendChild(card);
+            }
+
+            // Load more button
+            const hasMore = end < tokenIds.length;
+            document.getElementById("load-more-row").style.display = hasMore ? "flex" : "none";
+        }
+
+        function buildTokenCard(tokenId, extension, collectionAddr, isOwned) {
+            const params = state.demoMode
+                ? getDemoTokenParams(collectionAddr, tokenId)
+                : extractSvgParams(extension, collectionAddr + tokenId);
+
+            const svg = getCachedSVG(collectionAddr + tokenId, params);
+            const colName = state.collectionCache[collectionAddr]?.contractInfo?.name
+                || state.collections.find(c => c.addr === collectionAddr)?.contractInfo?.name
+                || "Collection";
+
+            const card = document.createElement("div");
+            card.className = "token-card" + (isOwned ? " owned" : "");
+            card.innerHTML = `
+                <div class="token-svg-wrap">${svg}</div>
+                <div class="token-info">
+                    <span class="token-collection-name">${escapeHtml(colName)}</span>
+                    <span class="token-id">#${escapeHtml(tokenId)}</span>
+                </div>`;
+            return card;
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // COLLECTION GRID (LIST VIEW)
+        // ═══════════════════════════════════════════════════════════════
+
+        function buildCollectionGrid(collections) {
+            const grid = document.getElementById("collection-grid");
+            grid.innerHTML = "";
+
+            if (collections.length === 0) {
+                grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+                    <p>No collections found.</p>
+                </div>`;
+                return;
+            }
+
+            for (const col of collections) {
+                const mintConfig = col.config || {};
+                const price = getCurrentPrice(mintConfig);
+                const priceAmt = price.amount;
+                const maxSupply = getMaxSupply(mintConfig);
+                const remaining = maxSupply > 0 ? maxSupply - (col.minted || 0) : null;
+                const statusClass = remaining === 0 ? "ended" : "live";
+                const statusText = remaining === 0 ? "Sold Out" : "Live";
+
+                // Use the on-chain placeholder SVG if available; fall back to generative renderer.
+                const previewSvg = col.placeholder
+                    || getCachedSVG("preview_" + col.addr, col.demoParams || extractSvgParams({}, col.addr || "terp1default"));
+
+                const previewHtml = previewSvg
+                    ? scopeSvgIds(previewSvg, "card-" + col.addr.slice(-8))
+                    : "";
+
+                const card = document.createElement("div");
+                card.className = "collection-card";
+                card.innerHTML = `
+                    <div class="col-card-preview">${previewHtml}</div>
+                    <div class="col-card-body">
+                        <span class="col-status-badge ${statusClass}">${statusText}</span>
+                        <div class="col-card-name">${escapeHtml(col.contractInfo?.name || "Collection")}</div>
+                        <span class="col-card-symbol">${escapeHtml(col.contractInfo?.symbol || "")}</span>
+                        <div class="col-card-meta">
+                            <div class="col-card-stat">
+                                <span class="col-stat-label">Price</span>
+                                <span class="col-stat-value">${formatPrice(priceAmt)}</span>
+                            </div>
+                            <div class="col-card-stat">
+                                <span class="col-stat-label">Minted</span>
+                                <span class="col-stat-value">${(col.minted || 0).toLocaleString()}</span>
+                            </div>
+                            ${maxSupply > 0 ? `
+                            <div class="col-card-stat">
+                                <span class="col-stat-label">Max</span>
+                                <span class="col-stat-value">${maxSupply.toLocaleString()}</span>
+                            </div>` : ""}
+                        </div>
+                        <button class="btn-browse" onclick="openCollection('${col.addr}')">
+                            Browse Collection
+                        </button>
+                    </div>`;
+                grid.appendChild(card);
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // MINTING
+        // ═══════════════════════════════════════════════════════════════
+
+        window.handleMint = async function () {
+            const addr = state.currentAddr;
+            if (!addr || addr.startsWith("terp1demo")) {
+                showToast("Demo mode — minting not available.", "info");
+                return;
+            }
+
+            if (!state.address || !state.wallet) {
+                showToast("Connect your wallet first", "error");
+                return;
+            }
+
+            if (!MsgExecuteContract) {
+                showToast("Libraries not loaded. Please refresh.", "error");
+                return;
+            }
+
+            const summary = state.collectionCache[addr]
+                || state.collections.find(c => c.addr === addr);
+            const price = getCurrentPrice(summary?.config);
+            const plan = computeShitstrapPlan(state.quantity, price);
+            state.currentPlan = plan;
+
+            if (!plan.canAfford) {
+                showToast("Insufficient balance to mint " + state.quantity + " token(s)", "error");
+                return;
+            }
+
+            state.mintStep = "confirm";
+            renderMintConfirm(summary, plan);
+        };
+
+        window.changeQuantity = function (delta) {
+            const addr = state.currentAddr;
+            const summary = addr ? (state.collectionCache[addr] || state.collections.find(c => c.addr === addr)) : null;
+            const maxSupply = getMaxSupply(summary?.config);
+            const collectionRemaining = maxSupply > 0 ? maxSupply - (summary?.minted || 0) : 10;
+            const price = summary ? getCurrentPrice(summary.config) : null;
+            const max = (state.address && price)
+                ? computeMaxQuantity(price, collectionRemaining)
+                : Math.min(collectionRemaining, 10);
+            const newQty = state.quantity + delta;
+            if (newQty >= 1 && newQty <= max) {
+                state.quantity = newQty;
+                document.getElementById("qty-display").textContent = state.quantity;
+                document.getElementById("qty-dec").disabled = state.quantity <= 1;
+                document.getElementById("qty-inc").disabled = state.quantity >= max;
+                if (summary) {
+                    updateMintTotal(summary);
+                    renderPaymentSection(summary);
+                }
+            }
+        };
+
+        function updateMintTotal(summary) {
+            const price = getCurrentPrice(summary?.config);
+            const totalNum = (parseInt(price.amount) * state.quantity) / Math.pow(10, CONFIG.denomDecimals);
+            document.getElementById("mint-total").textContent = totalNum.toLocaleString() + " " + CONFIG.denomDisplay;
+            document.getElementById("qty-display").textContent = state.quantity;
+            document.getElementById("qty-dec").disabled = state.quantity <= 1;
+
+            const maxSupply = getMaxSupply(summary?.config);
+            const collectionRemaining = maxSupply > 0 ? maxSupply - (summary?.minted || 0) : 100;
+            const max = (state.address && price)
+                ? computeMaxQuantity(price, collectionRemaining)
+                : Math.min(collectionRemaining, 10);
+            document.getElementById("qty-inc").disabled = state.quantity >= max;
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // MY COLLECTION MODAL (cross-collection wallet view)
+        // ═══════════════════════════════════════════════════════════════
+
+        window.openMyCollectionModal = async function () {
+            if (!state.address) {
+                showToast("Connect your wallet to view your collection", "info");
+                return;
+            }
+
+            const body = document.getElementById("modal-body");
+            body.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading your tokens...</p></div>';
+            document.getElementById("modal-collection").style.display = "flex";
+
+            // Collect all user tokens across all collections
+            const allUserNfts = [];
+            const collectionsToCheck = state.demoMode ? [] : state.collections;
+
+            for (const col of collectionsToCheck) {
+                if (col.addr.startsWith("terp1demo")) continue;
+                try {
+                    const ids = await fetchUserTokenIds(col.addr);
+                    for (const tokenId of ids) {
+                        allUserNfts.push({ tokenId, collection: col });
+                    }
+                } catch { /* skip */ }
+            }
+
+            if (allUserNfts.length === 0) {
+                body.innerHTML = `<div class="modal-empty">
+                    <p>No NFTs found in your wallet${state.demoMode ? " (Demo Mode)" : ""}.</p>
+                    <p style="font-size:0.8rem;color:rgba(189,147,249,0.6)">Mint your first piece from a collection!</p>
+                </div>`;
+                return;
+            }
+
+            let html = '<div class="nft-grid">';
+            for (const { tokenId, collection } of allUserNfts) {
+                let extension = {};
+                try {
+                    if (!state.tokenParams[tokenId]) {
+                        await fetchTokenParamsPage(collection.addr, [tokenId]);
+                    }
+                    extension = state.tokenParams[tokenId] || {};
+                } catch { /* use empty */ }
+
+                const params = extractSvgParams(extension, collection.addr + tokenId);
+                const svg = getCachedSVG(collection.addr + tokenId, params);
+                html += `
+                    <div class="nft-card">
+                        <div class="nft-svg-wrap">${svg}</div>
+                        <div class="nft-info">
+                            <span class="nft-collection-name">${escapeHtml(collection.contractInfo?.name || "NFT")}</span>
+                            <span class="nft-token-id">#${escapeHtml(tokenId)}</span>
+                        </div>
+                    </div>`;
+            }
+            html += '</div>';
+            body.innerHTML = html;
+        };
+
+        window.closeMyCollectionModal = function () {
+            document.getElementById("modal-collection").style.display = "none";
+        };
+
+        // ═══════════════════════════════════════════════════════════════
+        // TX RESULT MODAL
+        // ═══════════════════════════════════════════════════════════════
+
+        function showTxResult({ success, txHash, collectionName, title, message, rawError }) {
+            const modal = document.getElementById("modal-tx");
+            const card = document.getElementById("tx-modal-card");
+
+            card.className = "tx-modal-card " + (success ? "success" : "error");
+
+            if (success) {
+                const explorerLink = txHash ? `${CONFIG.explorerBase}/tx/${txHash}` : "";
+
+                card.innerHTML = `
+                    <div class="tx-modal-icon">&#10003;</div>
+                    <div class="tx-modal-title">Mint Successful</div>
+                    <div class="tx-modal-message">
+                        ${state.quantity > 1 ? `${state.quantity} tokens minted from ` : "Minted from "}
+                        <strong>${escapeHtml(collectionName || "Collection")}</strong> on Terp Network.
+                    </div>
+                    ${txHash ? `
+                        <div class="tx-modal-hash-label">Transaction Hash</div>
+                        <div class="tx-modal-hash-box">
+                            <span class="tx-modal-hash">${escapeHtml(txHash)}</span>
+                            <button class="tx-modal-copy" onclick="copyTxHash('${escapeHtml(txHash)}', this)">Copy</button>
+                        </div>
+                    ` : ""}
+                    <div class="tx-modal-actions">
+                        ${txHash ? `
+                            <a href="${explorerLink}" target="_blank" rel="noopener"
+                               class="tx-modal-btn tx-modal-btn-primary">
+                                View on Explorer &#8599;
+                            </a>
+                        ` : ""}
+                        <button class="tx-modal-btn tx-modal-btn-secondary" onclick="closeTxModal()">
+                            Close
+                        </button>
+                    </div>`;
+            } else {
+                const explorerLink = txHash ? `${CONFIG.explorerBase}/tx/${txHash}` : "";
+                card.innerHTML = `
+                    <div class="tx-modal-icon">&#10007;</div>
+                    <div class="tx-modal-title">${escapeHtml(title || "Transaction Failed")}</div>
+                    <div class="tx-modal-message">${escapeHtml(message || "An unknown error occurred.")}</div>
+                    ${txHash ? `
+                        <div class="tx-modal-hash-label">Transaction Hash</div>
+                        <div class="tx-modal-hash-box">
+                            <span class="tx-modal-hash">${escapeHtml(txHash)}</span>
+                            <button class="tx-modal-copy" onclick="copyTxHash('${escapeHtml(txHash)}', this)">Copy</button>
+                        </div>
+                    ` : ""}
+                    ${rawError && rawError !== message ? `
+                        <div class="tx-modal-error-detail">
+                            <div class="tx-modal-error-label">Raw Error</div>
+                            <div class="tx-modal-error-text">${escapeHtml(rawError)}</div>
+                        </div>
+                    ` : ""}
+                    <div class="tx-modal-actions">
+                        ${txHash ? `
+                            <a href="${explorerLink}" target="_blank" rel="noopener"
+                               class="tx-modal-btn tx-modal-btn-error">
+                                View on Explorer &#8599;
+                            </a>
+                        ` : ""}
+                        <button class="tx-modal-btn tx-modal-btn-secondary" onclick="closeTxModal()">
+                            Close
+                        </button>
+                    </div>`;
+            }
+
+            modal.style.display = "flex";
+        }
+
+        window.closeTxModal = function () {
+            document.getElementById("modal-tx").style.display = "none";
+        };
+
+        window.copyTxHash = function (hash, btn) {
+            navigator.clipboard.writeText(hash).then(() => {
+                const prev = btn.textContent;
+                btn.textContent = "Copied!";
+                setTimeout(() => { btn.textContent = prev; }, 1500);
+            });
+        };
+
+        document.addEventListener("keydown", e => {
+            if (e.key === "Escape") {
+                closeTxModal();
+                closeMyCollectionModal();
+            }
+        });
+
+        // ═══════════════════════════════════════════════════════════════
+        // GENERATIVE SVG RENDERER
+        // ═══════════════════════════════════════════════════════════════
+
+        const PALETTES = {
+            purple: { primary: "#bd93f9", secondary: "#6c5ce7", glow: "#a29bfe", bg: "#1a0a2e", particle: "#d4b8ff", ring: "#9b7de8" },
+            teal:   { primary: "#98e8c1", secondary: "#55efc4", glow: "#00b894", bg: "#0a1a15", particle: "#b8f5d8", ring: "#6ce8a8" },
+            gold:   { primary: "#ffeaa7", secondary: "#fdcb6e", glow: "#f9ca24", bg: "#1a1500", particle: "#fff3c4", ring: "#f0d56e" },
+        };
+
+        const GLYPH_SETS = {
+            ancient: ["✧", "✦", "◇", "⊕", "⊗", "⟡", "⟐", "◈", "⊛", "✵"],
+            runes:   ["ᚠ", "ᚢ", "ᚦ", "ᚨ", "ᚱ", "ᚲ", "ᚷ", "ᚹ", "ᚺ", "ᚾ"],
+            carbon:  ["⬡", "⬢", "⬣", "◯", "⏣", "⎔", "⏢", "⎊", "⊡", "⊞"],
+        };
+
+        function mulberry32(seed) {
+            let s = seed | 0;
+            return function () {
+                s = (s + 0x6D2B79F5) | 0;
+                let t = Math.imul(s ^ (s >>> 15), 1 | s);
+                t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+            };
+        }
+
+        function hashStr(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
+            }
+            return Math.abs(hash);
+        }
+
+        // Map on-chain extension to generative SVG params
+        function extractSvgParams(extension, seedStr) {
+            const seed = hashStr(seedStr || "default");
+            const rngNames = ['nebula', 'void', 'aurora'];
+            const colorNames = ['purple', 'teal', 'gold'];
+            const glyphNames = ['ancient', 'runes', 'carbon'];
+
+            return {
+                background_style: extension.background_style || rngNames[seed % 3],
+                core_color:       extension.core_color || colorNames[(seed >> 2) % 3],
+                ring_count:       parseInt(extension.ring_count) || (3 + (seed % 6)),
+                particle_density: parseFloat(extension.particle_density) || (0.3 + (seed % 7) * 0.1),
+                glyph_set:        extension.glyph_set || glyphNames[(seed >> 4) % 3],
+                seed:             parseInt(extension.seed) || seed,
+            };
+        }
+
+        function getDemoTokenParams(collectionAddr, tokenId) {
+            const col = state.collections.find(c => c.addr === collectionAddr);
+            if (col?.demoParams) {
+                const s = hashStr(collectionAddr + tokenId);
+                return { ...col.demoParams, seed: col.demoParams.seed + s % 1000 };
+            }
+            return extractSvgParams({}, collectionAddr + tokenId);
+        }
+
+        function renderGenerativeSVG(params, uid) {
+            const p = {
+                background_style: "nebula",
+                core_color: "purple",
+                ring_count: 5,
+                particle_density: 0.5,
+                glyph_set: "ancient",
+                seed: 42,
+                ...params,
+            };
+
+            const palette = PALETTES[p.core_color] || PALETTES.purple;
+            const glyphs = GLYPH_SETS[p.glyph_set] || GLYPH_SETS.ancient;
+            const rng = mulberry32(p.seed || hashStr(uid || "default"));
+            const id = uid || "svg" + Math.random().toString(36).slice(2, 8);
+
+            const noiseFreq = p.background_style === "void" ? "0.08" : "0.004";
+            const noiseOctaves = p.background_style === "void" ? "2" : "4";
+
+            let bgLayer = "";
+            if (p.background_style === "aurora") {
+                bgLayer = `
+                    <rect width="1000" height="1000" fill="url(#bg-${id})"/>
+                    <rect x="0" y="0" width="333" height="1000" fill="${palette.primary}" opacity="0.03"/>
+                    <rect x="667" y="0" width="333" height="1000" fill="${palette.secondary}" opacity="0.03"/>
+                    <ellipse cx="500" cy="500" rx="600" ry="400" fill="${palette.glow}" opacity="0.03">
+                        <animate attributeName="ry" values="380;420;380" dur="8s" repeatCount="indefinite"/>
+                    </ellipse>`;
+            } else {
+                bgLayer = `<rect width="1000" height="1000" fill="url(#bg-${id})"/>`;
+            }
+
+            let rings = "";
+            const ringCount = Math.max(2, Math.min(8, p.ring_count));
+            for (let i = 0; i < ringCount; i++) {
+                const radius = 160 + i * 40 + rng() * 20;
+                const ry = radius * (0.75 + rng() * 0.2);
+                const angle = rng() * 360;
+                const dur = 15 + i * 5 + rng() * 10;
+                const dir = i % 2 === 0 ? 360 : -360;
+                const sw = 1 + rng() * 1.5;
+                const dashLen = 10 + rng() * 30;
+                const gapLen = 5 + rng() * 15;
+                const opacity = 0.3 + rng() * 0.4;
+
+                rings += `<ellipse rx="${radius.toFixed(1)}" ry="${ry.toFixed(1)}"
+                    fill="none" stroke="url(#ring-${id})" stroke-width="${sw.toFixed(1)}"
+                    stroke-dasharray="${dashLen.toFixed(0)} ${gapLen.toFixed(0)}"
+                    opacity="${opacity.toFixed(2)}"
+                    transform="rotate(${angle.toFixed(1)})">
+                    <animateTransform attributeName="transform" type="rotate"
+                        from="${angle.toFixed(1)}" to="${(angle + dir).toFixed(1)}"
+                        dur="${dur.toFixed(1)}s" repeatCount="indefinite"/>
+                </ellipse>`;
+            }
+
+            let particles = "";
+            const particleCount = Math.floor(20 + p.particle_density * 60);
+            for (let i = 0; i < particleCount; i++) {
+                const angle = rng() * Math.PI * 2;
+                const dist = 80 + rng() * 380;
+                const px = 500 + Math.cos(angle) * dist;
+                const py = 500 + Math.sin(angle) * dist;
+                const r = 1 + rng() * 3;
+                const opacity = 0.2 + rng() * 0.6;
+                const dur = 2 + rng() * 4;
+                const oLow = Math.max(0.1, opacity - 0.2);
+
+                particles += `<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="${r.toFixed(1)}"
+                    fill="${palette.particle}" opacity="${opacity.toFixed(2)}">
+                    <animate attributeName="opacity"
+                        values="${opacity.toFixed(2)};${oLow.toFixed(2)};${opacity.toFixed(2)}"
+                        dur="${dur.toFixed(1)}s" repeatCount="indefinite"/>
+                </circle>`;
+            }
+
+            let glyphLayer = "";
+            const glyphCount = 5 + Math.floor(rng() * 6);
+            for (let i = 0; i < glyphCount; i++) {
+                const angle = rng() * Math.PI * 2;
+                const dist = 30 + rng() * 100;
+                const gx = 500 + Math.cos(angle) * dist;
+                const gy = 500 + Math.sin(angle) * dist;
+                const size = 14 + rng() * 22;
+                const opacity = 0.15 + rng() * 0.35;
+                const glyph = glyphs[Math.floor(rng() * glyphs.length)];
+
+                glyphLayer += `<text x="${gx.toFixed(1)}" y="${gy.toFixed(1)}"
+                    font-size="${size.toFixed(0)}" fill="${palette.primary}"
+                    opacity="${opacity.toFixed(2)}" text-anchor="middle"
+                    dominant-baseline="central" font-family="serif">${glyph}</text>`;
+            }
+
+            const centralGlyph = glyphs[Math.floor(rng() * glyphs.length)];
+            glyphLayer += `<text x="500" y="500" font-size="36" fill="${palette.primary}"
+                opacity="0.5" text-anchor="middle" dominant-baseline="central" font-family="serif">
+                ${centralGlyph}
+                <animate attributeName="opacity" values="0.4;0.6;0.4" dur="3s" repeatCount="indefinite"/>
+            </text>`;
+
+            return `<svg viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg" style="background:#000">
+                <defs>
+                    <filter id="noise-${id}" x="0%" y="0%" width="100%" height="100%">
+                        <feTurbulence type="fractalNoise" baseFrequency="${noiseFreq}"
+                            numOctaves="${noiseOctaves}" seed="${p.seed}" stitchTiles="stitch" result="noise"/>
+                        <feColorMatrix type="saturate" values="0" in="noise" result="mono"/>
+                        <feComponentTransfer in="mono" result="faded">
+                            <feFuncA type="linear" slope="0.12"/>
+                        </feComponentTransfer>
+                        <feBlend in="SourceGraphic" in2="faded" mode="screen"/>
+                    </filter>
+                    <filter id="glow-${id}" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur stdDeviation="25" result="blur"/>
+                        <feMerge>
+                            <feMergeNode in="blur"/>
+                            <feMergeNode in="blur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+                    <filter id="soft-glow-${id}" x="-30%" y="-30%" width="160%" height="160%">
+                        <feGaussianBlur stdDeviation="12"/>
+                    </filter>
+                    <radialGradient id="bg-${id}" cx="50%" cy="50%" r="70%">
+                        <stop offset="0%" stop-color="${palette.bg}"/>
+                        <stop offset="100%" stop-color="#000000"/>
+                    </radialGradient>
+                    <radialGradient id="orb-${id}" cx="50%" cy="45%" r="50%">
+                        <stop offset="0%" stop-color="${palette.primary}" stop-opacity="0.9"/>
+                        <stop offset="35%" stop-color="${palette.secondary}" stop-opacity="0.5"/>
+                        <stop offset="65%" stop-color="${palette.glow}" stop-opacity="0.2"/>
+                        <stop offset="100%" stop-color="${palette.glow}" stop-opacity="0"/>
+                    </radialGradient>
+                    <radialGradient id="inner-orb-${id}" cx="50%" cy="45%" r="50%">
+                        <stop offset="0%" stop-color="#ffffff" stop-opacity="0.6"/>
+                        <stop offset="40%" stop-color="${palette.primary}" stop-opacity="0.4"/>
+                        <stop offset="100%" stop-color="${palette.primary}" stop-opacity="0"/>
+                    </radialGradient>
+                    <linearGradient id="ring-${id}" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="${palette.ring}" stop-opacity="0.8"/>
+                        <stop offset="50%" stop-color="${palette.glow}" stop-opacity="0.3"/>
+                        <stop offset="100%" stop-color="${palette.ring}" stop-opacity="0.8"/>
+                    </linearGradient>
+                </defs>
+                ${bgLayer}
+                <rect width="1000" height="1000" filter="url(#noise-${id})" opacity="0.4"/>
+                <circle cx="500" cy="500" r="350" fill="${palette.glow}" opacity="0.04"
+                    filter="url(#soft-glow-${id})">
+                    <animate attributeName="r" values="340;360;340" dur="6s" repeatCount="indefinite"/>
+                </circle>
+                <g transform="translate(500,500)">${rings}</g>
+                <g>${particles}</g>
+                <circle cx="500" cy="500" r="130" fill="url(#orb-${id})" filter="url(#glow-${id})">
+                    <animate attributeName="r" values="125;140;125" dur="4s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="500" cy="500" r="80" fill="url(#orb-${id})">
+                    <animate attributeName="r" values="76;84;76" dur="3.5s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="500" cy="500" r="35" fill="url(#inner-orb-${id})">
+                    <animate attributeName="r" values="32;38;32" dur="3s" repeatCount="indefinite"/>
+                    <animate attributeName="opacity" values="0.7;1;0.7" dur="3s" repeatCount="indefinite"/>
+                </circle>
+                <g>${glyphLayer}</g>
+                <rect width="1000" height="1000" fill="url(#vignette-${id})" opacity="0.6"/>
+                <defs>
+                    <radialGradient id="vignette-${id}" cx="50%" cy="50%" r="60%">
+                        <stop offset="0%" stop-color="transparent"/>
+                        <stop offset="100%" stop-color="#000000"/>
+                    </radialGradient>
+                </defs>
+            </svg>`;
+        }
+
+        const svgCache = new Map();
+        function getCachedSVG(key, params) {
+            if (svgCache.has(key)) return svgCache.get(key);
+            const svg = renderGenerativeSVG(params, key.replace(/[^a-z0-9]/gi, "_").slice(-20));
+            svgCache.set(key, svg);
+            return svg;
+        }
+
+        // Sanitize SVG from on-chain data: strip <script>, <foreignObject>,
+        // event handler attributes, and javascript: URIs to prevent XSS.
+        function sanitizeSvg(svgStr) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(svgStr, 'image/svg+xml');
+            // Malformed XML — never return unsanitized input
+            if (doc.querySelector('parsererror')) return '';
+            // Remove dangerous elements (animate/set can mutate attrs at runtime)
+            doc.querySelectorAll('script, foreignObject, animate, set').forEach(el => el.remove());
+            // Remove event handlers, javascript: and data: URIs from all elements
+            doc.querySelectorAll('*').forEach(el => {
+                for (const attr of [...el.attributes]) {
+                    if (attr.name.startsWith('on')) {
+                        el.removeAttribute(attr.name);
+                    }
+                    const val = attr.value.trim().toLowerCase();
+                    if ((attr.name === 'href' || attr.name === 'xlink:href')
+                        && (val.startsWith('javascript:') || val.startsWith('data:'))) {
+                        el.removeAttribute(attr.name);
+                    }
+                }
+            });
+            return new XMLSerializer().serializeToString(doc.documentElement);
+        }
+
+        // Rewrite all id="X" in an SVG to "prefix-X" and update all url(#X),
+        // href="#X", xlink:href="#X" references to match. Prevents ID collisions
+        // when multiple SVGs from different collections are on the same page.
+        // Also normalises invalid "view-box" → "viewBox" and synthesizes a
+        // viewBox from width/height when missing, so fixed-size SVGs scale correctly.
+        function scopeSvgIds(svgStr, prefix) {
+            svgStr = sanitizeSvg(svgStr);
+            let out = svgStr;
+
+            // Fix invalid hyphenated attribute name
+            out = out.replace(/\bview-box=/gi, 'viewBox=');
+
+            // Synthesize viewBox from width/height if still absent
+            if (!/\bviewBox=/i.test(out)) {
+                const wMatch = out.match(/\bwidth="([\d.]+)"/);
+                const hMatch = out.match(/\bheight="([\d.]+)"/);
+                if (wMatch && hMatch) {
+                    out = out.replace(/<svg\b/, `<svg viewBox="0 0 ${wMatch[1]} ${hMatch[1]}"`);
+                }
+            }
+
+            // Scope IDs to prevent collisions across cards
+            const ids = new Set();
+            out.replace(/\bid="([^"]+)"/g, (_, id) => ids.add(id));
+            for (const id of ids) {
+                out = out.replaceAll(`id="${id}"`, `id="${prefix}-${id}"`);
+                out = out.replaceAll(`url(#${id})`, `url(#${prefix}-${id})`);
+                out = out.replaceAll(`href="#${id}"`, `href="#${prefix}-${id}"`);
+                out = out.replaceAll(`xlink:href="#${id}"`, `xlink:href="#${prefix}-${id}"`);
+            }
+            return out;
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // TOASTS
+        // ═══════════════════════════════════════════════════════════════
+
+        function showToast(message, type = "info") {
+            const container = document.getElementById("toasts");
+            const toast = document.createElement("div");
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add("removing");
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // CONFETTI
+        // ═══════════════════════════════════════════════════════════════
+
+        function showConfetti() {
+            const canvas = document.getElementById("confetti-canvas");
+            canvas.style.display = "block";
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const ctx = canvas.getContext("2d");
+            const colors = ["#98e8c1", "#bd93f9", "#fe7d7d", "#ffeaa7", "#cfffcf", "#55efc4", "#fdcb6e"];
+
+            const pieces = [];
+            for (let i = 0; i < 150; i++) {
+                pieces.push({
+                    x: Math.random() * canvas.width,
+                    y: -20 - Math.random() * 200,
+                    vx: (Math.random() - 0.5) * 8,
+                    vy: Math.random() * 3 + 2,
+                    w: 4 + Math.random() * 8, h: 3 + Math.random() * 5,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    rot: Math.random() * 360,
+                    rotV: (Math.random() - 0.5) * 12,
+                });
+            }
+
+            let frame = 0;
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                for (const p of pieces) {
+                    p.x += p.vx; p.y += p.vy; p.vy += 0.08; p.vx *= 0.99; p.rot += p.rotV;
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate((p.rot * Math.PI) / 180);
+                    ctx.fillStyle = p.color;
+                    ctx.globalAlpha = Math.max(0, 1 - frame / 180);
+                    ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+                    ctx.restore();
+                }
+                frame++;
+                if (frame < 180) requestAnimationFrame(animate);
+                else canvas.style.display = "none";
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // BACKGROUND CANVAS (bokeh orbs)
+        // ═══════════════════════════════════════════════════════════════
+
+        (function initBackground() {
+            const canvas = document.getElementById("glow-canvas");
+            if (!canvas) return;
+            const ctx = canvas.getContext("2d");
+            let width, height, centerX, centerY, time = 0;
+
+            function resize() {
+                width = window.innerWidth; height = window.innerHeight;
+                canvas.width = width; canvas.height = height;
+                centerX = width / 2; centerY = height / 2;
+            }
+            resize();
+            window.addEventListener("resize", resize);
+
+            const orbPositions = [
+                { x: 0, y: 0, size: 0.9, brightness: 1.0 },
+                { x: -1, y: 0, size: 0.85, brightness: 0.9 },
+                { x: 1, y: 0, size: 0.85, brightness: 0.9 },
+                { x: 0, y: -1, size: 0.85, brightness: 0.9 },
+                { x: 0, y: 1, size: 0.85, brightness: 0.9 },
+                { x: -1, y: -1, size: 0.8, brightness: 0.85 },
+                { x: 1, y: -1, size: 0.8, brightness: 0.85 },
+                { x: -1, y: 1, size: 0.8, brightness: 0.85 },
+                { x: 1, y: 1, size: 0.8, brightness: 0.85 },
+                { x: -2, y: 0, size: 0.75, brightness: 0.75 },
+                { x: 2, y: 0, size: 0.75, brightness: 0.75 },
+                { x: 0, y: -2, size: 0.75, brightness: 0.75 },
+                { x: 0, y: 2, size: 0.75, brightness: 0.75 },
+            ];
+
+            const glowColor = { r: 200, g: 255, b: 210 };
+
+            function drawOrb(x, y, baseRadius, brightness, pulseOffset) {
+                const pulse = 1 + 0.03 * Math.sin(time * 0.0008 + pulseOffset);
+                const radius = baseRadius * pulse;
+                const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
+                const alpha = brightness * 0.7;
+                gradient.addColorStop(0, `rgba(${glowColor.r},${glowColor.g},${glowColor.b},${alpha})`);
+                gradient.addColorStop(0.15, `rgba(${glowColor.r},${glowColor.g},${glowColor.b},${alpha * 0.85})`);
+                gradient.addColorStop(0.35, `rgba(${glowColor.r},${glowColor.g},${glowColor.b},${alpha * 0.55})`);
+                gradient.addColorStop(0.55, `rgba(${glowColor.r},${glowColor.g},${glowColor.b},${alpha * 0.3})`);
+                gradient.addColorStop(0.75, `rgba(${glowColor.r},${glowColor.g},${glowColor.b},${alpha * 0.12})`);
+                gradient.addColorStop(1, `rgba(${glowColor.r},${glowColor.g},${glowColor.b},0)`);
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+                ctx.fillStyle = gradient;
+                ctx.fill();
+            }
+
+            function draw(timestamp) {
+                time = timestamp;
+                ctx.fillStyle = "#000000";
+                ctx.fillRect(0, 0, width, height);
+                const gridUnit = Math.min(width, height) * 0.14;
+                const orbRadius = gridUnit * 1.1;
+
+                orbPositions.forEach((orb, i) => {
+                    drawOrb(
+                        centerX + orb.x * gridUnit,
+                        centerY + orb.y * gridUnit,
+                        orbRadius * orb.size,
+                        orb.brightness,
+                        i * 0.4
+                    );
+                });
+
+                requestAnimationFrame(draw);
+            }
+
+            requestAnimationFrame(draw);
+        })();
+
+        // ═══════════════════════════════════════════════════════════════
+        // UTILS
+        // ═══════════════════════════════════════════════════════════════
+
+        function escapeHtml(str) {
+            const div = document.createElement("div");
+            div.textContent = String(str);
+            return div.innerHTML;
+        }
+
+        function formatPrice(amountStr) {
+            const num = parseInt(amountStr || "0") / Math.pow(10, CONFIG.denomDecimals);
+            return num.toLocaleString() + " " + CONFIG.denomDisplay;
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // INIT
+        // ═══════════════════════════════════════════════════════════════
+
+        async function init() {
+            await loadLibs();
+            await tryReconnect();
+
+            const collections = await fetchCollections();
+            state.collections = collections;
+
+            document.getElementById("loading").style.display = "none";
+            document.getElementById("collection-grid").style.display = "grid";
+
+            if (state.demoMode) {
+                document.getElementById("demo-notice").style.display = "block";
+            }
+
+            buildCollectionGrid(collections);
+        }
+
+        init().catch(err => {
+            console.error("Init failed:", err);
+            state.demoMode = true;
+            state.collections = DEMO_COLLECTIONS;
+            document.getElementById("loading").style.display = "none";
+            document.getElementById("collection-grid").style.display = "grid";
+            document.getElementById("demo-notice").style.display = "block";
+            buildCollectionGrid(DEMO_COLLECTIONS);
+        });
+    </script>
+
+<div id="fab-wallet-stack" style="position:fixed;bottom:6rem;right:1.5rem;z-index:9998;display:flex;flex-direction:column;gap:0.5rem;align-items:center;">
+<button id="faucet-btn" style="display:none;width:40px;height:40px;border-radius:50%;border:none;background:#ffb86c;color:#000;cursor:pointer;font-size:14px;font-weight:500;box-shadow:0 4px 15px rgba(255,184,108,0.3);align-items:center;justify-content:center;" aria-label="Faucet" title="Faucet">F</button>
+<button id="btn-wallet" style="width:40px;height:40px;border-radius:50%;border:none;background:rgba(152,232,193,0.15);border:1px solid rgba(152,232,193,0.4);color:#98e8c1;cursor:pointer;font-size:16px;font-weight:400;box-shadow:0 4px 15px rgba(152,232,193,0.15);display:flex;align-items:center;justify-content:center;" aria-label="Connect Wallet" title="Connect Wallet">W</button>
+</div>
+<div id="fab-nav" style="position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;">
+<div id="fab-menu" style="position:absolute;bottom:58px;right:0;display:none;flex-direction:column;gap:2px;padding:0.5rem;background:rgba(10,10,15,0.95);border:1px solid rgba(152,232,193,0.2);border-radius:12px;min-width:150px;box-shadow:0 8px 40px rgba(0,0,0,0.7);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);">
+<div style="font-size:0.55rem;text-transform:uppercase;letter-spacing:0.1em;color:rgba(152,232,193,0.4);padding:0.25rem 0.75rem 0.1rem;font-family:Satoshi,sans-serif;">Navigate</div>
+<a href="/svg" style="display:block;padding:0.5rem 0.75rem;border-radius:6px;color:#98e8c1;background:rgba(152,232,193,0.08);font-family:Satoshi,sans-serif;font-size:0.8rem;font-weight:400;text-decoration:none;">SVG</a>
+<a href="/tabs" style="display:block;padding:0.5rem 0.75rem;border-radius:6px;color:#d2d3d8;font-family:Satoshi,sans-serif;font-size:0.8rem;font-weight:400;text-decoration:none;">Names</a>
+<a href="/ibc" style="display:block;padding:0.5rem 0.75rem;border-radius:6px;color:#d2d3d8;font-family:Satoshi,sans-serif;font-size:0.8rem;font-weight:400;text-decoration:none;">IBC</a>
+<a href="/brain" style="display:block;padding:0.5rem 0.75rem;border-radius:6px;color:#d2d3d8;font-family:Satoshi,sans-serif;font-size:0.8rem;font-weight:400;text-decoration:none;">Brain</a>
+<div style="height:1px;background:rgba(152,232,193,0.1);margin:0.15rem 0.5rem;"></div>
+<a href="/no-rick" style="display:block;padding:0.5rem 0.75rem;border-radius:6px;color:#d2d3d8;font-family:Satoshi,sans-serif;font-size:0.8rem;font-weight:400;text-decoration:none;">No Rick</a>
+<a href="/passkey" style="display:block;padding:0.5rem 0.75rem;border-radius:6px;color:#d2d3d8;font-family:Satoshi,sans-serif;font-size:0.8rem;font-weight:400;text-decoration:none;">Passkey</a>
+<a href="/tx" style="display:block;padding:0.5rem 0.75rem;border-radius:6px;color:#d2d3d8;font-family:Satoshi,sans-serif;font-size:0.8rem;font-weight:400;text-decoration:none;">Tx Builder</a>
+<a href="/admin" style="display:block;padding:0.5rem 0.75rem;border-radius:6px;color:#d2d3d8;font-family:Satoshi,sans-serif;font-size:0.8rem;font-weight:400;text-decoration:none;">Admin</a>
+</div>
+<button onclick="var m=document.getElementById('fab-menu');var o=m.style.display==='flex';m.style.display=o?'none':'flex';" style="width:48px;height:48px;border-radius:50%;border:none;background:#98e8c1;color:#000;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:300;box-shadow:0 4px 20px rgba(152,232,193,0.3);" aria-label="Menu">+</button>
+</div>
+<script>document.addEventListener("click",function(e){var f=document.getElementById("fab-nav");if(f&&!f.contains(e.target))document.getElementById("fab-menu").style.display="none"});</script>
+</body>
+
+</html>
