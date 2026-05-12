@@ -1,4 +1,11 @@
 # misc
 .DS_Store
-# used for local testing
-install.py
+node_modules
+.env*
+*.bak
+target*
+__pycache__
+testdata
+dist
+soon
+review
