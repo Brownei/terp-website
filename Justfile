@@ -14,11 +14,11 @@ config      := website_dir / "public" / "config.json"
 
 # start the dev server on :3000
 serve:
-    python3 scripts/py/serve.py
+    python3 scripts/serve.py
 
 # start dev server on a custom port
 serve-on port="3000":
-    WEBSITE_PORT={{port}} python3 scripts/py/serve.py
+    WEBSITE_PORT={{port}} python3 scripts/serve.py
 
 # ─── Config & Checksums ────────────────────────────────────────
 

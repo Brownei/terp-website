@@ -6,7 +6,7 @@ import urllib.request
 import urllib.error
 
 PORT = int(os.environ.get("WEBSITE_PORT", "3000"))
-ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 RPC_PROXY = os.environ.get("CHAIN_RPC", "http://localhost:26657")  # proxied at /rpc to avoid CORS in dev
 
 # Auto-discover routes from pages/*.html
@@ -16,7 +16,7 @@ _pages_dir = os.path.join(ROOT, "pages")
 if os.path.isdir(_pages_dir):
     for f in os.listdir(_pages_dir):
         if f.endswith(".html") and f != "index.html":
-            slug = "/" + f[:-5]  # strip .html -> /mint, /no-rick, etc.
+            slug = "/" + f[:-5].lower()  # strip .html -> /mint, /no-rick, etc.
             ROUTES[slug] = f
 
 # Suppress noisy auto-requests that are never meaningful in dev
