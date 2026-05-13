@@ -898,132 +898,63 @@
 
     <div class="toast" id="toast"></div>
 
-    <script>
-      const state = {
-        collections: [
-          {
-            id: "col_1",
-            name: "Terp Genesis",
-            symbol: "TERPG",
-            description:
-              "The genesis NFT collection marking the beginning of on-chain culture on Terp Network. Each piece represents a core tenet of the ecosystem.",
-            maxSupply: 10000,
-            image: "",
-            createdAt: Date.now() - 86400000 * 7,
-            nfts: [
-              {
-                id: "nft_1",
-                name: "Sovereign #001",
-                price: "50 TERP",
-                minted: 842,
-                maxSupply: 1000,
-              },
-              {
-                id: "nft_2",
-                name: "Censorship Resistant #042",
-                price: "75 TERP",
-                minted: 312,
-                maxSupply: 500,
-              },
-              {
-                id: "nft_3",
-                name: "Permissionless #107",
-                price: "25 TERP",
-                minted: 1500,
-                maxSupply: 2000,
-              },
-              {
-                id: "nft_4",
-                name: "Interoperable #256",
-                price: "100 TERP",
-                minted: 89,
-                maxSupply: 250,
-              },
-              {
-                id: "nft_5",
-                name: "Open #512",
-                price: "10 TERP",
-                minted: 3200,
-                maxSupply: 5000,
-              },
-            ],
-          },
-          {
-            id: "col_2",
-            name: "Validators of Terp",
-            symbol: "VALTRP",
-            description:
-              "A collection honoring the validators who secure the Terp Network. Stake, validate, and earn your place in history.",
-            maxSupply: 5000,
-            image: "",
-            createdAt: Date.now() - 86400000 * 3,
-            nfts: [
-              {
-                id: "nft_6",
-                name: "Validator #0001",
-                price: "150 TERP",
-                minted: 45,
-                maxSupply: 100,
-              },
-              {
-                id: "nft_7",
-                name: "Validator #0002",
-                price: "150 TERP",
-                minted: 32,
-                maxSupply: 100,
-              },
-              {
-                id: "nft_8",
-                name: "Active Set #001",
-                price: "200 TERP",
-                minted: 18,
-                maxSupply: 50,
-              },
-            ],
-          },
-          {
-            id: "col_3",
-            name: "TerpDAO Voices",
-            symbol: "TDAOV",
-            description:
-              "Governance participation NFTs awarded to active members of the TerpDAO community. Your voice, on-chain.",
-            maxSupply: 500,
-            image: "",
-            createdAt: Date.now() - 86400000 * 1,
-            nfts: [
-              {
-                id: "nft_9",
-                name: "Proposal Maker",
-                price: "0 TERP",
-                minted: 12,
-                maxSupply: 50,
-              },
-              {
-                id: "nft_10",
-                name: "Voter #001",
-                price: "0 TERP",
-                minted: 45,
-                maxSupply: 200,
-              },
-              {
-                id: "nft_11",
-                name: "Delegate",
-                price: "0 TERP",
-                minted: 8,
-                maxSupply: 30,
-              },
-            ],
-          },
-        ],
-        mintTarget: null,
-      };
+    <script type="module">
+      import {
+        QueryClient,
+        QueryObserver,
+      } from "https://esm.sh/@tanstack/query-core";
 
-      function renderCollections() {
+      // Create query client
+      const queryClient = new QueryClient();
+      const BASE_URL = "http://localhost:5000";
+
+      // Fetch function
+      async function fetchCollections() {
+        const res = await fetch(`${BASE_URL}/cosmos/nft/v1beta1/classes`, {
+          method: "GET",
+        });
+
+        if (!res.ok) {
+          throw new Error("Failed to fetch users");
+        }
+
+        return res.json();
+      }
+
+      // Create observer
+      const observer = new QueryObserver(queryClient, {
+        queryKey: ["collections"],
+        queryFn: fetchCollections,
+      });
+
+      const output = document.getElementById("output");
+
+      // Subscribe to query updates
+      observer.subscribe((result) => {
+        if (result.isLoading) {
+          output.innerHTML = "<p>Loading...</p>";
+          return;
+        }
+
+        if (result.isError) {
+          output.innerHTML = `<p>Error: ${result.error.message}</p>`;
+          return;
+        }
+
+        console.log(result.data);
+        renderCollections(result.data);
+        output.innerHTML = result.data
+          .map((user) => `<p>${user.name}</p>`)
+          .join("");
+      });
+
+      function renderCollections(state) {
+        const collections = state.classes;
         const grid = document.getElementById("collectionsGrid");
         const empty = document.getElementById("emptyState");
         grid.innerHTML = "";
 
-        if (state.collections.length === 0) {
+        if (collections.length === 0) {
           empty.style.display = "block";
           grid.style.display = "none";
           return;
@@ -1032,10 +963,10 @@
         empty.style.display = "none";
         grid.style.display = "grid";
 
-        state.collections.forEach((col) => {
+        collections.forEach((col) => {
           const itemsMinted = col.nfts.reduce((sum, n) => sum + n.minted, 0);
           const floorPrice = col.nfts.reduce((min, n) => {
-            const price = parseInt(n.price);
+            const price = parseInt(n.data.value);
             return price < min ? price : min;
           }, Infinity);
           const displayPrice =
@@ -1046,7 +977,7 @@
           card.onclick = () => openCollectionModal(col.id);
 
           const thumbContent = col.image
-            ? `<img src="${col.image}" alt="${col.name}">`
+            ? `<img src="${col.uri}" alt="${col.name}">`
             : col.name
                 .split(" ")
                 .map((w) => w[0])
@@ -1082,32 +1013,62 @@
         });
       }
 
-      function openCollectionModal(colId) {
-        const col = state.collections.find((c) => c.id === colId);
-        if (!col) return;
-        document.getElementById("collectionModalTitle").textContent = col.name;
-        const top = document.getElementById("collectionModalTop");
-        const body = document.getElementById("collectionModalBody");
-        const itemsMinted = col.nfts.reduce((sum, n) => sum + n.minted, 0);
-        top.innerHTML = `
-                <div style="margin-bottom:1rem;color:#d2d3d8;font-size:0.9rem;line-height:1.6;">${col.description}</div>
+      function openCollectionModal(colId, colName) {
+        async function fetchNFTs() {
+          const res = await fetch(
+            `${BASE_URL}/cosmos/nft/v1beta1/nfts?class_id=${colId}`,
+            {
+              method: "GET",
+            },
+          );
+
+          if (!res.ok) {
+            throw new Error("Failed to fetch users");
+          }
+
+          return res.json();
+        }
+
+        // Create observer
+        const observer = new QueryObserver(queryClient, {
+          queryKey: ["nfts"],
+          queryFn: fetchNFTs,
+        });
+
+        observer.subscribe((result) => {
+          const nfts = result.data.nfts;
+          if (result.isLoading) {
+            output.innerHTML = "<p>Loading...</p>";
+            return;
+          }
+
+          if (result.isError) {
+            output.innerHTML = `<p>Error: ${result.error.message}</p>`;
+            return;
+          }
+
+          document.getElementById("collectionModalTitle").textContent = colName;
+          const top = document.getElementById("collectionModalTop");
+          const body = document.getElementById("collectionModalBody");
+          top.innerHTML = `
+                <div style="margin-bottom:1rem;color:#d2d3d8;font-size:0.9rem;line-height:1.6;">${colDescription}</div>
                 <div style="display:flex;gap:1.5rem;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1px solid rgba(207,255,207,0.08);">
-                    <div><div style="font-size:1rem;font-weight:500;color:#ffffda;">${col.nfts.length}</div><div style="font-size:0.7rem;color:#6272a4;text-transform:uppercase;letter-spacing:0.05em;">Items</div></div>
+                    <div><div style="font-size:1rem;font-weight:500;color:#ffffda;">${nfts.length}</div><div style="font-size:0.7rem;color:#6272a4;text-transform:uppercase;letter-spacing:0.05em;">Items</div></div>
                     <div><div style="font-size:1rem;font-weight:500;color:#ffffda;">${itemsMinted}</div><div style="font-size:0.7rem;color:#6272a4;text-transform:uppercase;letter-spacing:0.05em;">Minted</div></div>
-                    <div><div style="font-size:1rem;font-weight:500;color:#ffffda;">$${col.symbol}</div><div style="font-size:0.7rem;color:#6272a4;text-transform:uppercase;letter-spacing:0.05em;">Symbol</div></div>
+                    <div><div style="font-size:1rem;font-weight:500;color:#ffffda;">$${colSymbol}</div><div style="font-size:0.7rem;color:#6272a4;text-transform:uppercase;letter-spacing:0.05em;">Symbol</div></div>
                 </div>
             `;
-        body.innerHTML = `
+          body.innerHTML = `
                 <div class="nft-grid">
-                    ${col.nfts
+                    ${nfts
                       .map(
                         (nft) => `
                         <div class="nft-card">
-                            <div class="nft-preview">${nft.name.split(" ").slice(-1)[0].length > 3 ? "&#9670;" : "&#9632;"}</div>
-                            <div class="nft-name" title="${nft.name}">${nft.name}</div>
-                            <div class="nft-price">${nft.price}</div>
+                            <div class="nft-preview">${nft.uri.split(" ").slice(-1)[0].length > 3 ? "&#9670;" : "&#9632;"}</div>
+                            <div class="nft-name" title="${nft.uri}">${nft.uri}</div>
+                            <div class="nft-price">${nft.data.value}</div>
                             <div class="nft-supply">${nft.minted} / ${nft.maxSupply} minted</div>
-                            <button class="nft-mint-btn" onclick="openMintModal('${col.id}', '${nft.id}')" ${nft.minted >= nft.maxSupply ? "disabled" : ""}>
+                            <button class="nft-mint-btn" onclick="openMintModal('${colId}', '${nft.id}')" ${nft.minted >= nft.maxSupply ? "disabled" : ""}>
                                 ${nft.minted >= nft.maxSupply ? "Sold Out" : "Mint"}
                             </button>
                         </div>
@@ -1116,7 +1077,8 @@
                       .join("")}
                 </div>
             `;
-        document.getElementById("collectionModal").classList.add("active");
+          document.getElementById("collectionModal").classList.add("active");
+        });
       }
 
       function openCreateModal() {
